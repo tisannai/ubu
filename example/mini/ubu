@@ -1,0 +1,11 @@
+#!/usr/bin/guile -s
+!#
+
+(use-modules (ubu))
+
+(set "message" "Hello Ubu")
+
+(action hello
+        (sh "echo" (get "message")))
+
+(ubu-run-cli)

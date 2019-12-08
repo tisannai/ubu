@@ -1,0 +1,103 @@
+#!/usr/bin/guile -s
+!#
+
+;; Load ubu module.
+(use-modules (ubu))
+
+;; Load helper library.
+(ubu-module "ubu-lib" gcc-utils)
+
+
+;; User help.
+(action-help
+ ""
+ "  Build utility for: ubu testing"
+ ""
+ "    Usage:"
+ "      ubu <opts-and-cmds>"
+ ""
+ "    Options:"
+ "      -p          Run in parallel (default: serial)"
+ "      -v          Verbose"
+ ""
+ "    Actions:"
+ "      help            This help."
+ "      compile         GCC compile"
+ "      link            GCC link"
+ "      build           GCC compile and link"
+ "      clean           Cleanup"
+ ""
+ ""
+ "  Copyright (c) 2019, Tero Isannainen"
+ "")
+
+;; Define cli interface.
+(cli-map
+
+ '(opt
+   (p :parallel)
+   (q :quiet))
+
+ '(par
+   (ll :log-level))
+
+ '(act
+   (ua ubu-actions)
+   (h  help)
+   (cl clean)
+   (c  compile)
+   (l  link)
+   (b  build)))
+
+
+
+;; Setup project variables.
+(set "hello-source-dir" "src")
+(set "hello-target-dir" "build")
+(set "hello-exe"        "bin/hello")
+(set "gcc-opt" false)
+
+
+;; Collect source files and map to object files.
+(let ((c-files (get-files (glu "/" (get "hello-source-dir") "*.c"))))
+  (set "hello-source-files" c-files)
+  (set "hello-target-files" (map-files
+                             c-files
+                             'dir (get "hello-target-dir")
+                             'ext ".o")))
+
+;; Ensure that build and bin directories exists.
+(action setup-dirs
+        (dir "build" "bin"))
+
+;; Compile C-files.
+(action compile
+        (gcc-compile-files 
+         (get "hello-source-files")
+         (get "hello-target-files")))
+
+;; Link obj-files.
+(action link
+        (gcc-link-files 
+         (get "hello-target-files")
+         (get "hello-exe")))
+
+;; Combine compilation and linking.
+(action build
+        (compile)
+        (link))
+
+;; Clean working area.
+(action clean
+        (sh "rm -f build/* bin/*"))
+
+;; Deep clean working area.
+(action dist-clean
+        (clean)
+        (sh "rm -rf build bin"))
+
+;; Always ensure that directories are setup.
+(ubu-pre-run "setup-dirs")
+
+;; Run Ubu using user defined cli.
+(ubu-run-cli)

@@ -1,0 +1,62 @@
+#!/usr/bin/guile -s
+!#
+
+(add-to-load-path "../lib")
+(use-modules (ubu))
+(use-modules (srfi srfi-64))
+
+
+(define (basic-cmd ubu-cmd)
+  (chdir "basic")
+  (let ((ret (cmd ubu-cmd)))
+    (chdir "..")
+    ;; (prnl ret)
+    ret))
+
+
+(test-begin "ubu")
+
+(test-equal "hello" #t
+            (string=?
+             (basic-cmd "ubu ubu-hello")
+             "hello"))
+
+(test-equal "actions" #t
+            (string=?
+             (basic-cmd "ubu ubu-actions")
+             "  ubu-actions
+  ubu-variables
+  ubu-cli-map
+  ubu-hello
+  help
+  setup-dirs
+  compile
+  link
+  build
+  clean
+  dist-clean"))
+
+(test-equal "help" #t
+            (string=?
+             (basic-cmd "ubu help")
+             "
+  Build utility for: ubu testing
+
+    Usage:
+      ubu <opts-and-cmds>
+
+    Options:
+      -p          Run in parallel (default: serial)
+      -v          Verbose
+
+    Actions:
+      help            This help.
+      compile         GCC compile
+      link            GCC link
+      build           GCC compile and link
+      clean           Cleanup
+
+
+  Copyright (c) 2019, Tero Isannainen"))
+
+(test-end)
