@@ -334,7 +334,7 @@
 
 
 ;; Execute shell command and display output.
-(define (output-shell-command cmd logout)
+(define (output-shell-command cmd)
   (lognl 'command "* ubu-execute:" cmd)
   (let ((ret (capture-shell-command cmd)))
     (log 'output (second ret))
@@ -349,7 +349,7 @@
 ;; Execute shell command.
 (define (sh cmd . rest)
   (let ((cmdstr (apply gap (cons cmd rest))))
-    (let ((status (output-shell-command cmdstr log-port)))
+    (let ((status (output-shell-command cmdstr)))
       (if (and
            (get ":abort-on-error")
            (not (= status 0)))
@@ -535,25 +535,32 @@
 ;; Logging:
 
 
-(define log-port #f)
+;; Hide log-port into a closure.
+(define log-port-open #f)
+(define log-port-close #f)
+(define log-text #f)
 
-(define (log-port-open portname)
-  (cond
-   ((string=? portname "<stdout>")
-    (set! log-port (current-output-port)))
-   (else
-    (set! log-port (open-file portname "w")))))
+(let ((log-port #f))
 
-(define (log-port-close)
-  (when (and (not log-port)
-             (not (equal? log-port (current-output-port))))
-    (close-port log-port)
-    (set! log-port #f)))
+  (set! log-port-open
+    (lambda (portname)
+      (cond
+       ((string=? portname "<stdout>")
+        (set! log-port (current-output-port)))
+       (else
+        (set! log-port (open-output-file portname))))))
 
+  (set! log-port-close
+    (lambda ()
+      (when (and (not log-port)
+                 (not (equal? log-port (current-output-port))))
+        (close-port log-port)
+        (set! log-port #f))))
 
-;; TODO: Open files and close files at execution end.
-(define (log-text txt)
-  (display txt log-port))
+  (set! log-text
+    (lambda (txt)
+      (display txt log-port))))
+
 
 ;; Logging levels:
 ;;  0 Quiet
@@ -756,7 +763,6 @@
 (define ubu-default-action #f)
 (define ubu-pre-action #f)
 (define ubu-post-action #f)
-;;(define ubu-log-port #f)
 (define ubu-log-out #f)
 (define ubu-log-level '())
 
