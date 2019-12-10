@@ -75,6 +75,8 @@
             first
             second
             third
+            last
+            nth
             empty
             empty?
             regexp-split
@@ -172,6 +174,11 @@
 ;; Return last in list.
 (define (last lst)
   (car (last-pair lst)))
+
+
+;; Return nth in list.
+(define (nth lst n)
+  (list-ref lst n))
 
 
 ;; Create list of pairs from list.
