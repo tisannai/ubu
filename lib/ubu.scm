@@ -307,8 +307,7 @@
 (define ubu-info
   (lambda lines
     (for-each
-     (lambda (line)
-       (prnl line))
+     prnl
      lines)))
 
 
@@ -381,19 +380,13 @@
                    (lambda ()
                      (sh cmd))))
                 lst)))
-      (for-each
-       (lambda (th)
-         (join-thread th))
-       ths))))
+      (for-each join-thread ths))))
 
 
 ;; Run shell commands in series.
 (define (sh-ser cmd . rest)
   (let ((lst (flat-args-1 (cons cmd rest))))
-    (for-each
-     (lambda (cmd)
-       (sh cmd))
-     lst)))
+    (for-each sh lst)))
 
 
 ;; ------------------------------------------------------------
@@ -749,10 +742,7 @@
 
 ;; Run proc for each lookup entry.
 (define (lookup-each lup proc)
-  (for-each
-   (lambda (i)
-     (proc i))
-   (reverse (lookup-lst lup))))
+  (for-each proc (reverse (lookup-lst lup))))
 
 
 ;; Return list of lookup keys.
