@@ -277,7 +277,7 @@ Current list of Ubu System Variables:
   threads. Applies to `sh-set` function, but does not affect `sh-par`
   nor `sh-ser`.
 
-* `:log`: Guile port for logging output.
+* `:log-file`: Guile file/port for logging output (default: `<stdout>`).
 
 * `:log-level`: Verbosity level for logging: 0 = quiet, 1 = error, 2 =
   warning, 3 = command (default), 4 = output

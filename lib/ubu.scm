@@ -6,7 +6,7 @@
 ;; + parallel execution
 ;; + action listing
 ;; + module partioning
-;; - logging to files
+;; + logging to files
 ;; - stream direction
 ;; - flag for del call optimization
 
@@ -32,6 +32,7 @@
             ubu-default
             ubu-pre-run
             ubu-post-run
+            ubu-log
 
             action
             action-help
@@ -62,6 +63,7 @@
             ubu-update?
             log
             lognl
+            with-log
 
             str
             prn
@@ -271,10 +273,11 @@
 (define (ubu-exit . args)
   (let ((code
          (if (pair? args) (car args) 0)))
-;;    (when (not (= code 0))
-;;      (errprnl "Exiting UBU with error(s) ..."))
+    (ubu-shutdown)
+    ;; (when (not (= code 0))
+    ;; (errprnl "Exiting UBU with error(s) ..."))
     (exit code)))
-;;    #t))
+  ;;#t))
 
 ;; Fatal error.
 (define ubu-fatal
@@ -347,7 +350,7 @@
 ;; Execute shell command.
 (define (sh cmd . rest)
   (let ((cmdstr (apply gap (cons cmd rest))))
-    (let ((status (output-shell-command cmdstr ubu-log)))
+    (let ((status (output-shell-command cmdstr log-port)))
       (if (and
            (get ":abort-on-error")
            (not (= status 0)))
@@ -532,10 +535,26 @@
 ;; ------------------------------------------------------------
 ;; Logging:
 
+
+(define log-port #f)
+
+(define (log-port-open portname)
+  (cond
+   ((string=? portname "<stdout>")
+    (set! log-port (current-output-port)))
+   (else
+    (set! log-port (open-file portname "w")))))
+
+(define (log-port-close)
+  (when (and (not log-port)
+             (not (equal? log-port (current-output-port))))
+    (close-port log-port)
+    (set! log-port #f)))
+
+
 ;; TODO: Open files and close files at execution end.
 (define (log-text txt)
-  (display txt ubu-log))
-
+  (display txt log-port))
 
 ;; Logging levels:
 ;;  0 Quiet
@@ -543,15 +562,23 @@
 ;;  2 Warning
 ;;  3 Command
 ;;  4 Output
-(define (log-symbol-to-level level)
-  (let ((lvl (if (symbol? level)
-                 (case level
-                   ((error)   1)
-                   ((warning) 2)
-                   ((command) 3)
-                   ((output)  4)
-                   (else (ubu-fatal "Log symbol error: " level " ...")))
-                 level)))
+(define (log-to-level level)
+
+  (define (symbol-to-level level)
+    (case level
+      ((error)   1)
+      ((warning) 2)
+      ((command) 3)
+      ((output)  4)
+      (else (ubu-fatal "Log symbol error: " level " ..."))))
+
+  (let ((lvl (cond
+              ((symbol? level)
+               (symbol-to-level level))
+              ((string? level)
+               (symbol-to-level (string->symbol level)))
+              (else
+               level))))
     (if (and (>= lvl 1)
              (<= lvl 4 ))
         lvl
@@ -560,14 +587,23 @@
 ;; Log messages.
 (define (log level  . rest)
   (when ubu-log-out
-    (when (<= (log-symbol-to-level level)
-              ubu-log-level)
+    (when (<= (log-to-level level)
+              (car ubu-log-level))
       (log-text (string-join rest " ")))))
 
 ;; Log messages with newline.
 (define (lognl level . rest)
   (apply log (append (cons level rest) (list "\n"))))
 
+
+;; Run code with set logging-level.
+(define-syntax with-log
+  (syntax-rules ()
+    ((_ level code ...)
+     (begin
+       (ubu-push-log-level (log-to-level level))
+       code ...
+       (ubu-pop-log-level)))))
 
 
 ;; ------------------------------------------------------------
@@ -721,9 +757,18 @@
 (define ubu-default-action #f)
 (define ubu-pre-action #f)
 (define ubu-post-action #f)
-(define ubu-log #f)
+;;(define ubu-log-port #f)
 (define ubu-log-out #f)
-(define ubu-log-level #f)
+(define ubu-log-level '())
+
+
+;; Push log-level to log-level stack.
+(define (ubu-push-log-level lvl)
+  (set! ubu-log-level (cons lvl ubu-log-level)))
+
+;; Pop log-level from log-level stack.
+(define (ubu-pop-log-level)
+  (set! ubu-log-level (cdr ubu-log-level)))
 
 
 ;; Return list of ubu actions.
@@ -1087,18 +1132,18 @@
     (reverse act-list)))
 
 
+;; Shutdown sequence.
+(define (ubu-shutdown)
+  (log-port-close))
+
+
 ;; Run list of actions.
 (define (ubu-run lst)
 
   ;; Resolve some of the settings for better performance.
-  (set! ubu-log (get ":log"))
+  (log-port-open (get ":log-file"))
   (set! ubu-log-out (not (get ":quiet")))
-  (set! ubu-log-level (log-symbol-to-level
-                       (cond
-                        ((string? (get ":log-level"))
-                         (string->symbol (get ":log-level")))
-                       (else
-                        (get ":log-level")))))
+  (set! ubu-log-level (list (log-to-level (get ":log-level"))))
 
   (if (empty? lst)
       (if (not ubu-default-action)
@@ -1116,7 +1161,9 @@
      (if (lookup-ref ubu-act i)
          (eval-string (string-append "(" i ")"))
          (ubu-fatal "Unknown command: " i)))
-   lst))
+   lst)
+
+  (ubu-shutdown))
 
 
 ;; Parse cli and run actions.
@@ -1164,6 +1211,6 @@
 
 (set ":quiet" false)
 (set ":parallel" false)
-(set ":log" (current-output-port))
+(set ":log-file" "<stdout>")
 (set ":log-level" "command")
 (set ":abort-on-error" true)
