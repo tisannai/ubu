@@ -32,7 +32,6 @@
             ubu-default
             ubu-pre-run
             ubu-post-run
-            ubu-log
 
             action
             action-help
