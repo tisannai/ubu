@@ -563,6 +563,16 @@ failure status.
 Syntax: `(ubu-fatal <msg> ...)`
 
 
+### ubu-file-cache
+
+`ubu-file-cache` reads values from file if it exists. Otherwise it
+will execute the thunks and generate missing the file. Eventually
+`ubu-file-cache` will return the values as `values`, i.e. as Scheme
+multiple return values.
+
+Syntax: `(ubu-file-cache <filename> <thunk-list>)`
+
+
 ### ubu-hello
 
 `ubu-hello` prints "hello". This is usable for sanity checking.

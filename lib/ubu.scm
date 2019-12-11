@@ -28,6 +28,7 @@
             ubu-run-cli
             ubu-load
             ubu-module
+            ubu-file-cache
             ubu-reg-act
             ubu-default
             ubu-pre-run
@@ -152,6 +153,40 @@
      (begin
        (add-to-load-path modpath)
        (use-modules (modname))))))
+
+
+;; Load values from file if it exists.
+;;
+;; Example:
+;;
+;;     (define-values (python_package_dir
+;;                     python_include)
+;;       (ubu-file-cache ".ubu-cocotb-config"
+;;                       (list
+;;                        (lambda () (cmd "cocotb-config --prefix"))
+;;                        (lambda () (cmd "python3-config --includes")))))
+;;
+(define (ubu-file-cache filename thunks)
+  (if (file-exists? filename)
+      (apply values (drop-right
+                     (string-split
+                      (with-input-from-file filename (lambda () (get-string-all (current-input-port))))
+                      #\newline)
+                     1))
+      (let ((vals (map
+                   (lambda (thunk)
+                     (thunk))
+                   thunks)))
+        ;; Write values to file.
+        (with-output-to-file
+            filename
+          (lambda ()
+            (for-each
+             (lambda (val)
+               (display val (current-output-port))
+               (newline (current-output-port)))
+             vals)))
+        (apply values vals))))
 
 
 ;; List all directory entries, except dot files.
