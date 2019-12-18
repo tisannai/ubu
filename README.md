@@ -1,8 +1,8 @@
 # Overview
 
-Ubu is a library for building custom build programs. Ubu uses Guile
-for implemention, which enables convenient and compact build
-definitions.
+Ubu, Unique Build Utility, is a library for building custom build
+programs. Ubu uses Guile for implemention, which enables convenient
+and compact build definitions.
 
 Ubu features:
 

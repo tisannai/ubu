@@ -35,6 +35,7 @@
             ubu-post-run
 
             action
+            action-default
             action-help
             ref
             del
@@ -894,6 +895,20 @@
        (ubu-reg-act 'fn-name)))))
 
 
+;; Define default action.
+(define-syntax action-default
+  (lambda (x)
+    (syntax-case x ()
+      ((k code ...)
+       #`(begin
+           ;; Create symbol "default" on-the-fly.
+           (define #,(datum->syntax #'k 'default)
+             (lambda ()
+               code ...))
+           (ubu-reg-act "default")
+           (ubu-default "default"))))))
+
+
 ;; Define help action.
 (define-syntax action-help
   (lambda (x)
@@ -1225,19 +1240,22 @@
 
 ;; Display cli-map.
 (action ubu-cli-map
-        (for-each
-         (lambda (def)
-           (format #t "\n  ~a\n"
-                   (case (car def)
-                     ((opt) "Options:")
-                     ((par) "Parameters:")
-                     ((act) "Action aliases:")))
-           (for-each
-            (lambda (pair)
-              (format #t "    ~8a ~a\n" (first pair) (second pair)))
-            (cdr def)))
-         ubu-cli-map-def)
-        (format #t "\n"))
+        (if ubu-cli-map-def
+            (begin
+              (for-each
+               (lambda (def)
+                 (format #t "\n  ~a\n"
+                         (case (car def)
+                           ((opt) "Options:")
+                           ((par) "Parameters:")
+                           ((act) "Action aliases:")))
+                 (for-each
+                  (lambda (pair)
+                    (format #t "    ~8a ~a\n" (first pair) (second pair)))
+                  (cdr def)))
+               ubu-cli-map-def)
+              (format #t "\n"))
+            (ubu-warn "No cli-map defined ...")))
 
 (action ubu-hello
         (prnl "hello"))
