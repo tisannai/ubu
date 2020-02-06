@@ -510,6 +510,13 @@ target, `true` is returned.
 Syntax: `(ubu-update? <source-or-list> <target-or-list>)`
 
 
+### with-log
+
+Set `:log-level` for the contained code temporarely.
+
+Syntax: `(with-log <log-level> <expr>)`
+
+
 ## Ubu API
 
 ### ubu-act
