@@ -716,7 +716,7 @@ Syntax: `(errprnl <msg> ...)`
 
 `false` is false value.
 
-Syntax: `false <msg> ...`
+Syntax: `false`
 
 
 ### first
@@ -779,4 +779,4 @@ Syntax: `(third <list>)`
 
 `true` is true value.
 
-Syntax: `true <msg> ...`
+Syntax: `true`
