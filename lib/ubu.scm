@@ -94,7 +94,8 @@
 (use-modules (ice-9 threads))
 (use-modules (system repl repl))
 (use-modules (ice-9 textual-ports))
-(use-modules (ice-9 r5rs))
+;; Guile-3.0 does not like this. Removing for now...
+;; (use-modules (ice-9 r5rs))
 (use-modules (ice-9 eval-string))
 
 
