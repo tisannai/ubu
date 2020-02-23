@@ -12,6 +12,11 @@
 
 
 (define-module (ubu)
+
+  :use-module (srfi srfi-8)
+  ;; Needed for macro to refer the "receive" macro from srfi-8.
+  :autoload (srfi srfi-8) (receive)
+
   #:export (ubu-version
             ubu-exit
             ubu-fatal
@@ -62,6 +67,8 @@
             dir
             cli-map
             ubu-update?
+            ubu-to-update
+            ubu-for-updatable
             log
             lognl
             with-log
@@ -83,7 +90,11 @@
             empty?
             regexp-split
 
-            ))
+            )
+
+  #:re-export (receive)
+
+  )
 
 (use-modules (ice-9 rdelim))
 (use-modules (ice-9 popen))
@@ -566,6 +577,75 @@
     (else
      (newer? sources targets))))
 
+
+;; Reduce the sources and targets to lists that require
+;; updating.
+;;
+;; Return with "values" the updatable: sources, targets.
+;;
+(define (ubu-to-update sources targets)
+
+  (cond
+
+   ((and (list? sources)
+         (list? targets))
+    (let loop ((s sources)
+               (t targets)
+               (up-s '())
+               (up-t '()))
+      (if (and (pair? s)
+               (pair? t))
+          (if (newer? (car s) (car t))
+              (loop (cdr s) (cdr t) (cons (car s) up-s) (cons (car t) up-t))
+              (loop (cdr s) (cdr t) up-s up-t))
+          (values up-s up-t))))
+
+   ((list? targets)
+    (if (newer? sources (car targets))
+        (values sources targets)
+        (values '() '())))
+
+   ((list? sources)
+    (let loop ((s sources))
+      (if (pair? s)
+          (if (newer? (car s) targets)
+              (values sources targets)
+              (loop (cdr s)))
+          (values '() '()))))
+
+   (else
+    (if (newer? sources targets)
+        (values sources targets)
+        (values '() '())))))
+
+
+;; Call proc for sources and targets that actually require updates.
+;;
+;; If no files require updates, nothing is done.
+;;
+;; Example:
+;;
+;;       (ubu-for-updatable c-files o-files
+;;                          (lambda (up-c up-o)
+;;                            (sh-set
+;;                             (map
+;;                              (lambda (c o)
+;;                                (gap
+;;                                 "gcc -Wall"
+;;                                 (if (get "gcc-opt") "-O2" "-g")
+;;                                 "-c" c
+;;                                 "-o" o))
+;;                              up-c
+;;                              up-o)))))
+;;
+(define-syntax ubu-for-updatable
+  (syntax-rules ()
+    ((_ sources targets proc)
+     (receive (s t)
+         (ubu-to-update sources targets)
+       (when (and (pair? s)
+                  (pair? t))
+         (proc s t))))))
 
 
 ;; ------------------------------------------------------------

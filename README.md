@@ -496,6 +496,26 @@ to `<var>` and can be used within the body.
 Syntax: `(times (<var> <limit>) <expr> ...)`
 
 
+### ubu-for-updatable
+
+`ubu-for-updatable` calls "proc" if updates are needed for sources and
+targets. "proc" is called only if there is something to update. "proc"
+is a function with two arguments: sources, targets.
+
+Syntax: `(ubu-for-updatable <source-or-list> <target-or-list> <proc>)`
+
+
+### ubu-to-update
+
+`ubu-to-update` filters source and target files to a list that
+actually requires updating. The lists are returned with "values",
+i.e. multiple value return.
+
+If no updates are required, empty lists are returned.
+
+Syntax: `(ubu-to-update <source-or-list> <target-or-list>)`
+
+
 ### ubu-update?
 
 `ubu-update?` checks if target files need to be renewed or generated
