@@ -6,19 +6,20 @@
 
 ;; GCC: Compile c-files to object-files.
 (define (gcc-compile-files c-files o-files)
-  ;; File file pairs that actually need updates.
-  (ubu-for-updatable c-files o-files
-                     (lambda (up-c up-o)
-                       (sh-set
-                        (map
-                         (lambda (c o)
-                           (gap
-                            "gcc -Wall"
-                            (if (get "gcc-opt") "-O2" "-g")
-                            "-c" c
-                            "-o" o))
-                         up-c
-                         up-o)))))
+  ;; Filter file pairs that actually need updates.
+  (ubu-for-updates c-files
+                   o-files
+                   (lambda (up-c up-o)
+                     (sh-set
+                      (map
+                       (lambda (c o)
+                         (gap
+                          "gcc -Wall"
+                          (if (get "gcc-opt") "-O2" "-g")
+                          "-c" c
+                          "-o" o))
+                       up-c
+                       up-o)))))
 
 
 ;; GCC: Link object-files to executables.

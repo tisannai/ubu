@@ -496,13 +496,13 @@ to `<var>` and can be used within the body.
 Syntax: `(times (<var> <limit>) <expr> ...)`
 
 
-### ubu-for-updatable
+### ubu-for-updates
 
-`ubu-for-updatable` calls "proc" if updates are needed for sources and
+`ubu-for-updates` calls "proc" if updates are needed for sources and
 targets. "proc" is called only if there is something to update. "proc"
 is a function with two arguments: sources, targets.
 
-Syntax: `(ubu-for-updatable <source-or-list> <target-or-list> <proc>)`
+Syntax: `(ubu-for-updates <source-or-list> <target-or-list> <proc>)`
 
 
 ### ubu-to-update

@@ -68,7 +68,7 @@
             cli-map
             ubu-update?
             ubu-to-update
-            ubu-for-updatable
+            ubu-for-updates
             log
             lognl
             with-log
@@ -625,20 +625,20 @@
 ;;
 ;; Example:
 ;;
-;;       (ubu-for-updatable c-files o-files
-;;                          (lambda (up-c up-o)
-;;                            (sh-set
-;;                             (map
-;;                              (lambda (c o)
-;;                                (gap
-;;                                 "gcc -Wall"
-;;                                 (if (get "gcc-opt") "-O2" "-g")
-;;                                 "-c" c
-;;                                 "-o" o))
-;;                              up-c
-;;                              up-o)))))
+;;       (ubu-for-updates c-files o-files
+;;                        (lambda (up-c up-o)
+;;                          (sh-set
+;;                           (map
+;;                            (lambda (c o)
+;;                              (gap
+;;                               "gcc -Wall"
+;;                               (if (get "gcc-opt") "-O2" "-g")
+;;                               "-c" c
+;;                               "-o" o))
+;;                            up-c
+;;                            up-o))))
 ;;
-(define-syntax ubu-for-updatable
+(define-syntax ubu-for-updates
   (syntax-rules ()
     ((_ sources targets proc)
      (receive (s t)
