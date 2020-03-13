@@ -411,6 +411,14 @@ Syntax: `(get-files <pattern>)`
 Syntax: `(glu <sep> <str-or-strlist> ...)`
 
 
+### in-dir
+
+`in-dir` executes expression(s) in the selected direcotry and returns
+back.
+
+Syntax: `(in-dir <dir> <expr> ...)`
+
+
 ### log
 
 `log` outputs log messages using given logging level.
@@ -534,7 +542,7 @@ Syntax: `(ubu-update? <source-or-list> <target-or-list>)`
 
 Set `:log-level` for the contained code temporarely.
 
-Syntax: `(with-log <log-level> <expr>)`
+Syntax: `(with-log <log-level> <expr> ...)`
 
 
 ## Ubu API

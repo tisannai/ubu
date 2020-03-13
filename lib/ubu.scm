@@ -65,6 +65,7 @@
             map-files
             cmd
             dir
+            in-dir
             cli-map
             ubu-update?
             ubu-to-update
@@ -525,6 +526,17 @@
        (unless (file-exists? dir)
          (cmd (string-append "mkdir -p " dir))))
      dirs)))
+
+
+;; Execute in the selected directory and return back to original after
+;; execution.
+(define-syntax in-dir
+  (syntax-rules ()
+    ((_ dir code ...)
+     (let ((cur-dir (getcwd)))
+       (chdir dir)
+       code ...
+       (chdir cur-dir)))))
 
 
 
