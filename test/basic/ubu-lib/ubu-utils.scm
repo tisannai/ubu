@@ -3,15 +3,14 @@
   (when (ubu-update? c-files o-files)
     ;; Run parallel if enabled.
     (sh-set
-     (map
-      (lambda (c o)
-        (gap
-         "gcc -Wall"
-         (if (get "gcc-opt") "-O2" "-g")
-         "-c" c
-         "-o" o))
-      c-files
-      o-files))))
+     (map (lambda (c o)
+            (gap
+             "gcc -Wall"
+             (if (get "gcc-opt") "-O2" "-g")
+             "-c" c
+             "-o" o))
+          c-files
+          o-files))))
 
 
 ;; GCC: Link object-files to executables.

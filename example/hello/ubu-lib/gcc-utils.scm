@@ -11,15 +11,14 @@
                    o-files
                    (lambda (up-c up-o)
                      (sh-set
-                      (map
-                       (lambda (c o)
-                         (gap
-                          "gcc -Wall"
-                          (if (get "gcc-opt") "-O2" "-g")
-                          "-c" c
-                          "-o" o))
-                       up-c
-                       up-o)))))
+                      (map (lambda (c o)
+                             (gap
+                              "gcc -Wall"
+                              (if (get "gcc-opt") "-O2" "-g")
+                              "-c" c
+                              "-o" o))
+                           up-c
+                           up-o)))))
 
 
 ;; GCC: Link object-files to executables.

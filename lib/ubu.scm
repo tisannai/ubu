@@ -187,19 +187,17 @@
                       (with-input-from-file filename (lambda () (get-string-all (current-input-port))))
                       #\newline)
                      1))
-      (let ((vals (map
-                   (lambda (thunk)
-                     (thunk))
-                   thunks)))
+      (let ((vals (map (lambda (thunk)
+                         (thunk))
+                       thunks)))
         ;; Write values to file.
         (with-output-to-file
             filename
           (lambda ()
-            (for-each
-             (lambda (val)
-               (display val (current-output-port))
-               (newline (current-output-port)))
-             vals)))
+            (for-each (lambda (val)
+                        (display val (current-output-port))
+                        (newline (current-output-port)))
+                      vals)))
         (apply values vals))))
 
 
@@ -355,9 +353,7 @@
 ;; Display info, i.e. list of lines.
 (define ubu-info
   (lambda lines
-    (for-each
-     prnl
-     lines)))
+    (for-each prnl lines)))
 
 
 ;; Command line arugments excluding executable.
@@ -423,12 +419,11 @@
 ;;(define (sh-par cmd . rest) #f)
 (define (sh-par cmd . rest)
   (let ((lst (flat-args-1 (cons cmd rest))))
-    (let ((ths (map
-                (lambda (cmd)
-                  (call-with-new-thread
-                   (lambda ()
-                     (sh cmd))))
-                lst)))
+    (let ((ths (map (lambda (cmd)
+                      (call-with-new-thread
+                       (lambda ()
+                         (sh cmd))))
+                    lst)))
       (for-each join-thread ths))))
 
 
@@ -504,10 +499,9 @@
                 ".")
                (else
                 (string-join dir-pcs "/")))))
-    (map
-     (lambda (file)
-       (string-append dir "/" file))
-     (glob-dir dir pat))))
+    (map (lambda (file)
+           (string-append dir "/" file))
+         (glob-dir dir pat))))
 
 
 ;; Run shell command as support command.
@@ -521,11 +515,10 @@
 ;; Ensure that dir is present.
 (define (dir ensure-dir . rest)
   (let ((dirs (if (pair? rest) (cons ensure-dir rest) (list ensure-dir))))
-    (for-each
-     (lambda (dir)
-       (unless (file-exists? dir)
-         (cmd (string-append "mkdir -p " dir))))
-     dirs)))
+    (for-each (lambda (dir)
+                (unless (file-exists? dir)
+                  (cmd (string-append "mkdir -p " dir))))
+              dirs)))
 
 
 ;; Execute in the selected directory and return back to original after
@@ -637,18 +630,17 @@
 ;;
 ;; Example:
 ;;
-;;       (ubu-for-updates c-files o-files
-;;                        (lambda (up-c up-o)
-;;                          (sh-set
-;;                           (map
-;;                            (lambda (c o)
-;;                              (gap
-;;                               "gcc -Wall"
-;;                               (if (get "gcc-opt") "-O2" "-g")
-;;                               "-c" c
-;;                               "-o" o))
-;;                            up-c
-;;                            up-o))))
+;;     (ubu-for-updates c-files o-files
+;;                      (lambda (up-c up-o)
+;;                        (sh-set
+;;                         (map (lambda (c o)
+;;                                (gap
+;;                                 "gcc -Wall"
+;;                                 (if (get "gcc-opt") "-O2" "-g")
+;;                                 "-c" c
+;;                                 "-o" o))
+;;                              up-c
+;;                              up-o))))
 ;;
 (define-syntax ubu-for-updates
   (syntax-rules ()
@@ -658,6 +650,7 @@
        (when (and (pair? s)
                   (pair? t))
          (proc s t))))))
+
 
 
 ;; ------------------------------------------------------------
@@ -748,12 +741,11 @@
 (define str
   (lambda args
     (apply string-append
-           (map
-            (lambda (obj)
-              (if (string? obj)
-                  obj
-                  (object->string obj)))
-            args))))
+           (map (lambda (obj)
+                  (if (string? obj)
+                      obj
+                      (object->string obj)))
+                args))))
 
 
 ;; Print arguments.
@@ -1024,10 +1016,9 @@
 (define-syntax for
   (syntax-rules ()
     ((for (var lst) code ...)
-     (for-each
-      (lambda (var)
-        code ...)
-      lst))))
+     (for-each (lambda (var)
+                 code ...)
+               lst))))
 
 
 ;; Repeat body n times.
@@ -1084,30 +1075,27 @@
 ;; Set conf value.
 (define (set key val . rest)
   (if (pair? rest)
-      (for-each
-       (lambda (i)
-         (set (car i) (cadr i)))
-       (append (list key val) rest))
+      (for-each (lambda (i)
+                  (set (car i) (cadr i)))
+                (append (list key val) rest))
       (hash-set! ubu-var key val)))
 
 
 ;; Get conf value.
 (define (get key . rest)
   (if (pair? rest)
-      (map
-       (lambda (i)
-         (get i))
-       (cons key rest))
+      (map (lambda (i)
+             (get i))
+           (cons key rest))
       (hash-ref ubu-var key)))
 
 
 ;; Add to conf value (list type value).
 (define (add key val . rest)
   (if (pair? rest)
-      (for-each
-       (lambda (i)
-         (add key i))
-       (cons val rest))
+      (for-each (lambda (i)
+                  (add key i))
+                (cons val rest))
       (let ((has (hash-has-key? ubu-var key)))
         (if has
             (hash-set! ubu-var key
@@ -1135,10 +1123,9 @@
 (define (cli opt . rest)
   (let ((args (flat-args-1 rest)))
     (string-join
-     (map
-      (lambda (i)
-        (string-append opt " " i))
-      args)
+     (map (lambda (i)
+            (string-append opt " " i))
+          args)
      " ")))
 
 
@@ -1218,13 +1205,11 @@
 (define cli-map
   (lambda args
     (set! ubu-cli-map-def args)
-    (for-each
-     (lambda (i)
-       (for-each
-        (lambda (m)
-          (ubu-cli-map-add (car i) (first m) (second m)))
-        (cdr i)))
-     args)))
+    (for-each (lambda (i)
+                (for-each (lambda (m)
+                            (ubu-cli-map-add (car i) (first m) (second m)))
+                          (cdr i)))
+              args)))
 
 
 ;; Parse cli (from user).
@@ -1232,46 +1217,44 @@
   (let ((cli (make-cli-def empty empty empty))
         (act-list empty))
 
-    (for-each
+    (for-each (lambda (i)
+                (cond
 
-     (lambda (i)
-       (cond
+                 ;; Switch (e.g. "-v").
+                 ((eq? #\- (string-ref i 0))
+                  (set (ubu-cli-map-ref 'opt (substring i 1 2)) true))
 
-        ;; Switch (e.g. "-v").
-        ((eq? #\- (string-ref i 0))
-         (set (ubu-cli-map-ref 'opt (substring i 1 2)) true))
+                 ;; Parameter setting (e.g. "foo=bar").
+                 ((string-match "=" i)
+                  (let* ((pcs (regexp-split "=" i))
+                         (var (ubu-cli-map-ref 'par (car pcs)))
+                         (raw (cadr pcs))
+                         (val (cond
 
-        ;; Parameter setting (e.g. "foo=bar").
-        ((string-match "=" i)
-         (let* ((pcs (regexp-split "=" i))
-                (var (ubu-cli-map-ref 'par (car pcs)))
-                (raw (cadr pcs))
-                (val (cond
+                               ;; Space separated list value.
+                               ((> (length (regexp-split " " raw)) 1)
+                                (regexp-split " " raw))
 
-                      ;; Space separated list value.
-                      ((> (length (regexp-split " " raw)) 1)
-                       (regexp-split " " raw))
+                               ;; Number strings to number.
+                               ((string->number raw)
+                                (string->number raw))
 
-                      ;; Number strings to number.
-                      ((string->number raw)
-                       (string->number raw))
+                               ;; Truth values.
+                               ((string-match "true|false" raw)
+                                (if (equal? "true" raw) #t #f))
 
-                      ;; Truth values.
-                      ((string-match "true|false" raw)
-                       (if (equal? "true" raw) #t #f))
+                               ;; Literal.
+                               (else
+                                raw))))
 
-                      ;; Literal.
-                      (else
-                       raw))))
+                    (set var val)))
 
-           (set var val)))
+                 ;; Action.
+                 (else
+                  ;; Store command and trails.
+                  (set! act-list (cons (ubu-cli-map-ref 'act i) act-list)))))
 
-        ;; Action.
-        (else
-         ;; Store command and trails.
-         (set! act-list (cons (ubu-cli-map-ref 'act i) act-list)))))
-
-     (current-command-line-arguments))
+              (current-command-line-arguments))
 
     ;; Return list of collected actions.
     (reverse act-list)))
@@ -1301,12 +1284,11 @@
   (when ubu-post-action
     (set! lst (append lst ubu-post-action)))
 
-  (for-each
-   (lambda (i)
-     (if (lookup-ref ubu-act i)
-         (eval-string (string-append "(" i ")"))
-         (ubu-fatal "Unknown command: " i)))
-   lst)
+  (for-each (lambda (i)
+              (if (lookup-ref ubu-act i)
+                  (eval-string (string-append "(" i ")"))
+                  (ubu-fatal "Unknown command: " i)))
+            lst)
 
   (ubu-shutdown))
 
@@ -1325,28 +1307,25 @@
 ;; Display variables.
 (action ubu-variables
         (let ((keys (hash-keys ubu-var)))
-          (map
-           (lambda (key)
-             (format #t "  ~30a ~a\n" key (hash-ref ubu-var key)))
-           (sort keys string<))))
+          (map (lambda (key)
+                 (format #t "  ~30a ~a\n" key (hash-ref ubu-var key)))
+               (sort keys string<))))
 
 
 ;; Display cli-map.
 (action ubu-cli-map
         (if ubu-cli-map-def
             (begin
-              (for-each
-               (lambda (def)
-                 (format #t "\n  ~a\n"
-                         (case (car def)
-                           ((opt) "Options:")
-                           ((par) "Parameters:")
-                           ((act) "Action aliases:")))
-                 (for-each
-                  (lambda (pair)
-                    (format #t "    ~8a ~a\n" (first pair) (second pair)))
-                  (cdr def)))
-               ubu-cli-map-def)
+              (for-each (lambda (def)
+                          (format #t "\n  ~a\n"
+                                  (case (car def)
+                                    ((opt) "Options:")
+                                    ((par) "Parameters:")
+                                    ((act) "Action aliases:")))
+                          (for-each (lambda (pair)
+                                      (format #t "    ~8a ~a\n" (first pair) (second pair)))
+                                    (cdr def)))
+                        ubu-cli-map-def)
               (format #t "\n"))
             (ubu-warn "No cli-map defined ...")))
 
