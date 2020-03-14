@@ -1,0 +1,39 @@
+#!/usr/bin/guile -s
+!#
+
+(add-to-load-path "lib")
+
+;; Load ubu module.
+(use-modules (ubu))
+
+;; User help.
+(action-help
+ ""
+ "  Build utility for: ubu install"
+ ""
+ "    Usage:"
+ "      ubu <opts-and-cmds>"
+ ""
+ "    Actions:"
+ "      help            This help."
+ "      install         Install ubu to $GUILE_LOAD_PATH and $HOME/usr/man"
+ ""
+ ""
+ "  Copyright (c) 2020, Tero Isannainen"
+ "")
+
+;; Setup install variables.
+(set "ubu-path" (car (regexp-split ":" (env "GUILE_LOAD_PATH"))))
+(set "man-path" (cat (env "HOME") "/usr/man"))
+
+;; By default install ubu.
+(action-default
+ (sh "cp lib/ubu.scm" (get "ubu-path"))
+ (build-doc)
+ (sh "cp doc/UBU.3" (cat (get "man-path") "/man3")))
+
+;; Build man pages.
+(action build-doc
+        (sh "a2x --doctype manpage --format manpage doc/ubu.adoc -D doc"))
+
+(ubu-run-cli)

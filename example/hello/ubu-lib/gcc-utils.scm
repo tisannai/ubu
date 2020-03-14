@@ -24,4 +24,10 @@
 ;; GCC: Link object-files to executables.
 (define (gcc-link-files o-files exe-file)
   (when (ubu-update? o-files exe-file)
-    (sh "gcc" "-o" exe-file o-files)))
+    (sh "gcc"
+        (map (lambda (lib)
+               (cat "-l" lib))
+             (get "gcc-libs"))
+        "-o"
+        exe-file
+        o-files)))

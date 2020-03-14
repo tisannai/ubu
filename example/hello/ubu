@@ -56,7 +56,7 @@
 (set "hello-target-dir" "build")
 (set "hello-exe"        "bin/hello")
 (set "gcc-opt" false)
-
+(set "gcc-libs" '("m"))
 
 ;; Collect source files and map to object files.
 (let ((c-files (get-files (glu "/" (get "hello-source-dir") "*.c"))))
