@@ -1,4 +1,5 @@
-#!/usr/bin/guile -s
+#!/usr/bin/guile
+-s
 !#
 
 (add-to-load-path "lib")
@@ -25,15 +26,22 @@
 ;; Setup install variables.
 (set "ubu-path" (car (regexp-split ":" (env "GUILE_LOAD_PATH"))))
 (set "man-path" (cat (env "HOME") "/usr/man"))
+(set "doc-src" "doc/ubu.adoc")
+(set "doc-dst" "doc/UBU.3")
 
 ;; By default install ubu.
 (action-default
  (sh "cp lib/ubu.scm" (get "ubu-path"))
  (build-doc)
- (sh "cp doc/UBU.3" (cat (get "man-path") "/man3")))
+ (sh "cp " (get "doc-dst") (cat (get "man-path") "/man3")))
 
 ;; Build man pages.
 (action build-doc
-        (sh "a2x --doctype manpage --format manpage doc/ubu.adoc -D doc"))
+        (ubu-for-updates (get "doc-src") (get "doc-dst")
+                         (lambda (src dst)
+                           (sh "a2x --doctype manpage --format manpage" src "-D doc"))))
+
+(action clean
+        (sh "rm -f" (get "doc-dst")))
 
 (ubu-run-cli)

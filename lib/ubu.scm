@@ -608,7 +608,7 @@
    ((list? targets)
     (if (newer? sources (car targets))
         (values sources targets)
-        (values '() '())))
+        (values #f '())))
 
    ((list? sources)
     (let loop ((s sources))
@@ -616,12 +616,12 @@
           (if (newer? (car s) targets)
               (values sources targets)
               (loop (cdr s)))
-          (values '() '()))))
+          (values '() #f))))
 
    (else
     (if (newer? sources targets)
         (values sources targets)
-        (values '() '())))))
+        (values #f #f)))))
 
 
 ;; Call proc for sources and targets that actually require updates.
@@ -647,8 +647,8 @@
     ((_ sources targets proc)
      (receive (s t)
          (ubu-to-update sources targets)
-       (when (and (pair? s)
-                  (pair? t))
+       (when (and (or (and (list? s) (pair? s)) s)
+                  (or (and (list? t) (pair? t)) t))
          (proc s t))))))
 
 
