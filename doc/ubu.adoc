@@ -58,10 +58,10 @@ items.
 ....
 
 Ubu is a Guile program. It loads the `ubu` library/module (using
-use-modules). Action `hello` is defined and it performs a Shell
+`use-modules`). Action `hello` is defined and it performs a Shell
 command which displays "Hello Ubu".
 
-The `set` function defines a Ubu Variable called `message` with value
+The `set` function defines an Ubu Variable called `message` with value
 "Hello Ubu". The variable is referenced in the `hello` action. The
 `sh` function concatenates its arguments with space separation and
 executes a shell command. This is the most common form of executions
@@ -75,8 +75,8 @@ This example Ubu could be executed as:
 
     shell> ubu hello
 
-i.e. program name `ubu` followed with action `hello`. Command produces
-the output:
+i.e. program name `ubu` followed with action name `hello`. Command
+produces the output:
 
     * ubu-execute: echo Hello Ubu
 
@@ -115,17 +115,29 @@ directory.
 
 == Concepts
 
-The most important concepts in Ubu are Variables, Actions, and
+The most important concepts in Ubu are Actions, Variables, and
 Helpers.
 
-=== Variables, Actions, and Helpers
+=== Actions, Variables, and Helpers
 
-Variables customize Actions and enable in practice the use of
-Helpers. Helpers are useful for building reusable Ubu
-programs. Helpers are basically a library of Guile functions which are
-parametrized by Actions and also through Variables.
+Actions are the core of Ubu. They define what can be done for the
+user. Helpers are library functions which may be part of the Action
+functionality. Ubu itself, Actions, and Helpers are all parametrizable
+through Variables. Variables come in two flavors: Ubu System Variables
+and Ubu User Variables.
 
-This concept is easiest to describe using a concrete example. Let's
+Actions are Guile functions, which are registered to Ubu. They can be
+listed and identified. But since they are regular Guile functions,
+they can called the same way as any Guile function. Actions are
+thunks, i.e. they have no arguments. This also means that they can be
+parametrized only through Ubu Variables.
+
+Helpers are regural Guile functions. They typically have arguments, as
+any function. Additionally, they might be parametrized through Ubu
+Variables, which can be referenced with `get` function anywhere in the
+Helper body.
+
+The concepts are easiest to describe using a concrete example. Let's
 assume that we want to link C-object files in order to create an
 executable. We are skipping the complilation for now. The example
 lines are from "example/hello/ubu".
@@ -191,7 +203,7 @@ based customizations. However, it could simply refer to Variables with
 
 === Command Line Interface
 
-Ubu provides features to build usable user interfaces for Ubu
+Ubu provides features to build a convenient user interfaces for Ubu
 programs. In general, CLI is used to modify Variable values and to
 select Actions.
 
@@ -211,9 +223,14 @@ CLI is declared with the `cli-map` function, for example:
    (l  link))
 ....
 
+`cli-map` sets appreviations for Options, Parameters, and
+Actions. Without the `cli-map`, the full versions are only available.
+
 The `opt` section declares dash type options (e.g. `-q`), which set
-the associated Variable (`:quiet`) to `true`. Variables that start
-with colon (`:`) are Ubu System Variables.
+the associated Variable (`:quiet`) to `true`. Variables which start
+with a colon (`:`), are Ubu System Variables. Non-colon variables are
+user variables. Options default to `false` and if option is given on
+CLI, it is promoted to `true`.
 
 The `par` section declares assign style variable assignments
 (`ll=4`). Numbers and boolean values are automatically converted to
@@ -405,7 +422,7 @@ Syntax: `(gap <str-or-strlist> ...)`
 
 ==== get
 
-`get` return value of one or more Variables. Multiple values are
+`get` return value of one or more Ubu Variables. Multiple values are
 returned as a list.
 
 Syntax: `(get <var> ...)`
@@ -435,15 +452,15 @@ Syntax: `(in-dir <dir> <expr> ...)`
 
 ==== log
 
-`log` outputs log messages using given logging level.
+`log` outputs log messages using the given logging level.
 
 Syntax: `(log <level> <msg> ...)`
 
 
 ==== lognl
 
-`lognl` outputs log messages with a newline, and using given logging
-level.
+`lognl` outputs log messages with a newline, and using the given
+logging level.
 
 Syntax: `(lognl <level> <msg> ...)`
 
@@ -466,15 +483,15 @@ Syntax: `(pcs <str>)`
 
 ==== ref
 
-`ref` creates a delayed reference to a Variable. This is needed for
-out-of-order Variable references.
+`ref` creates a delayed reference to an Ubu Variable. This is needed
+for out-of-order Variable references.
 
 Syntax: `(ref <name>)`
 
 
 ==== set
 
-`set` defines a Variable value or multiple values.
+`set` defines an Ubu Variable value, or multiple Variables and values.
 
 Syntax: `(set <name> <value> [<name> <value> ...])`
 
@@ -554,9 +571,17 @@ Syntax: `(ubu-update? <source-or-list> <target-or-list>)`
 
 ==== with-log
 
-Set `:log-level` for the contained code temporarely.
+Set `:log-level` for the contained code temporarely. `<log-level>` is
+given as number or symbol.
 
 Syntax: `(with-log <log-level> <expr> ...)`
+
+
+==== with-output
+
+Set `:log-level` to `output` for the contained code temporarely.
+
+Syntax: `(with-output <expr> ...)`
 
 
 === Ubu API
@@ -777,14 +802,14 @@ Syntax: `(pair <list>)`
 
 ==== prn
 
-`prn` displays object values as messages.
+`prn` displays object values.
 
 Syntax: `(prn <msg> ...)`
 
 
 ==== prnl
 
-`prnl` displays object valus as message with newline.
+`prnl` displays object values with newline.
 
 Syntax: `(prnl <msg> ...)`
 

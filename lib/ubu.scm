@@ -18,6 +18,7 @@
   :autoload (srfi srfi-8) (receive)
 
   #:export (ubu-version
+            ubu-version-num
             ubu-exit
             ubu-fatal
             ubu-error
@@ -73,6 +74,7 @@
             log
             lognl
             with-log
+            with-output
 
             str
             prn
@@ -111,7 +113,8 @@
 (use-modules (ice-9 eval-string))
 
 
-(define ubu-version "0.0.1")
+(define ubu-version-num '(0 1))
+(define ubu-version (glu "." (map number->string ubu-version-num)))
 
 
 ;; ------------------------------------------------------------
@@ -730,6 +733,16 @@
     ((_ level code ...)
      (begin
        (ubu-push-log-level (log-to-level level))
+       code ...
+       (ubu-pop-log-level)))))
+
+
+;; Run code with output logging-level.
+(define-syntax with-output
+  (syntax-rules ()
+    ((_ code ...)
+     (begin
+       (ubu-push-log-level (log-to-level 'output))
        code ...
        (ubu-pop-log-level)))))
 

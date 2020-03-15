@@ -41,6 +41,11 @@
                          (lambda (src dst)
                            (sh "a2x --doctype manpage --format manpage" src "-D doc"))))
 
+(action test
+        (with-output
+         (in-dir "test"
+                 (sh "test-ubu"))))
+
 (action clean
         (sh "rm -f" (get "doc-dst")))
 
