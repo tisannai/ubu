@@ -1,5 +1,5 @@
 #!/usr/bin/guile
--s
+ -s
 !#
 
 (add-to-load-path "lib")

@@ -13,9 +13,20 @@
 
 (define-module (ubu)
 
+  :use-module (srfi srfi-1)
   :use-module (srfi srfi-8)
   ;; Needed for macro to refer the "receive" macro from srfi-8.
   :autoload (srfi srfi-8) (receive)
+  :use-module (srfi srfi-9)
+
+  :use-module (ice-9 rdelim)
+  :use-module (ice-9 popen)
+  :use-module (ice-9 regex)
+  :use-module (ice-9 ftw)
+  :use-module (ice-9 threads)
+  :use-module (system repl repl)
+  :use-module (ice-9 textual-ports)
+  :use-module (ice-9 eval-string)
 
   #:export (ubu-version
             ubu-version-num
@@ -99,23 +110,9 @@
 
   )
 
-(use-modules (ice-9 rdelim))
-(use-modules (ice-9 popen))
-(use-modules (ice-9 regex))
-(use-modules (ice-9 ftw))
-(use-modules (srfi srfi-1))
-(use-modules (srfi srfi-9))
-(use-modules (ice-9 threads))
-(use-modules (system repl repl))
-(use-modules (ice-9 textual-ports))
-;; Guile-3.0 does not like this. Removing for now...
-;; (use-modules (ice-9 r5rs))
-(use-modules (ice-9 eval-string))
 
 
 (define ubu-version-num '(0 1))
-(define ubu-version (glu "." (map number->string ubu-version-num)))
-
 
 ;; ------------------------------------------------------------
 ;; Utils:
@@ -1354,3 +1351,9 @@
 (set ":log-file" "<stdout>")
 (set ":log-level" "command")
 (set ":abort-on-error" true)
+
+
+;; ------------------------------------------------------------
+;; Version:
+
+(define ubu-version (glu "." (map number->string ubu-version-num)))
