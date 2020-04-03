@@ -324,11 +324,21 @@ API. Functions are listed in alphabetical order.
 
 === Action API
 
+
 ==== action
 
 `action` defines an Ubu Action and registers it to Ubu.
 
 Syntax: `(action <name> <expr> ...)`
+
+
+==== action-default
+
+`action-default` defines the default Ubu Action and registers it to
+Ubu. Name of the Action is `default`.
+
+Syntax: `(action-default <expr> ...)`
+
 
 ==== action-help
 
@@ -474,6 +484,13 @@ extension is mapped if `'ext` option is given.
 Syntax: `(map-files <file-or-filelist> ['dir <new-dir>] ['ext <new-ext>])`
 
 
+==== pair
+
+`pair` creates a list of pairs from list.
+
+Syntax: `(pair <list>)`
+
+
 ==== pcs
 
 `pcs` splits string into pieces (list) using spaces.
@@ -584,9 +601,11 @@ Set `:log-level` to `output` for the contained code temporarely.
 Syntax: `(with-output <expr> ...)`
 
 
+
 === Ubu API
 
-==== ubu-act
+
+==== ubu-act-list
 
 `ubu-act-list` returns Ubu Actions as a list.
 
@@ -730,9 +749,16 @@ Syntax: `(ubu-variables)`
 
 ==== ubu-version
 
-`ubu-version` is Ubu version as string.
+`ubu-version` returns Ubu version as string.
 
-Syntax: `ubu-version`
+Syntax: `(ubu-version)`
+
+
+==== ubu-version-num
+
+`ubu-version-num` is Ubu version as list of version digits.
+
+Syntax: `ubu-version-num`
 
 
 ==== ubu-warn
@@ -742,7 +768,9 @@ Syntax: `ubu-version`
 Syntax: `(ubu-warn <msg> ...)`
 
 
+
 === Utils API
+
 
 ==== dbg
 
@@ -793,11 +821,25 @@ Syntax: `false`
 Syntax: `(first <list>)`
 
 
-==== pair
+==== last
 
-`pair` returns a list of pairs from the given list.
+`last` returns the last item from the list.
 
-Syntax: `(pair <list>)`
+Syntax: `(last <list>)`
+
+
+==== list-dir
+
+`list-dir` list directory entries except the dot files.
+
+Syntax: `(list-dir <dir>)`
+
+
+==== nth
+
+`nth` returns the nth item from the list.
+
+Syntax: `(nth <list>)`
 
 
 ==== prn

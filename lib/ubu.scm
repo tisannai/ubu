@@ -28,81 +28,86 @@
   :use-module (ice-9 textual-ports)
   :use-module (ice-9 eval-string)
 
-  #:export (ubu-version
-            ubu-version-num
-            ubu-exit
-            ubu-fatal
-            ubu-error
-            ubu-warn
-            ubu-info
-            ubu-var
-            ubu-act-list
-            ubu-actions
-            ubu-variables
-            ubu-cli-map
-            ubu-hello
-            ubu-run
-            ubu-run-cli
-            ubu-load
-            ubu-module
-            ubu-file-cache
-            ubu-reg-act
-            ubu-default
-            ubu-pre-run
-            ubu-post-run
-
+  #:export (
+            ;; Action API
             action
             action-default
             action-help
-            ref
-            del
-            eva
-            for
-            times
-            pair
-            env
-            sh
-            sh-set
-            sh-par
-            sh-ser
-            set
-            get
             add
             cat
-            glu
-            gap
             cli
-            pcs
-            get-files
-            map-files
-            cmd
-            dir
-            in-dir
             cli-map
-            ubu-update?
-            ubu-to-update
-            ubu-for-updates
+            cmd
+            del
+            dir
+            env
+            eva
+            for
+            gap
+            get
+            get-files
+            glu
+            in-dir
             log
             lognl
+            map-files
+            pair
+            pcs
+            ref
+            set
+            sh
+            sh-par
+            sh-ser
+            sh-set
+            times
+            ubu-for-updates
+            ubu-to-update
+            ubu-update?
             with-log
             with-output
 
-            str
-            prn
-            prnl
+            ;; Ubu API
+            ubu-act-list
+            ubu-actions
+            ubu-cli-map
+            ubu-default
+            ubu-error
+            ubu-exit
+            ubu-fatal
+            ubu-file-cache
+            ubu-hello
+            ubu-info
+            ubu-load
+            ubu-module
+            ubu-post-run
+            ubu-pre-run
+            ubu-reg-act
+            ubu-run
+            ubu-run-cli
+            ubu-var
+            ubu-variables
+            ubu-version
+            ubu-version-num
+            ubu-warn
+
+            ;; Utils API
             dbg
-            errprn
-            errprnl
-            true
-            false
-            first
-            second
-            third
-            last
-            nth
             empty
             empty?
+            errprn
+            errprnl
+            false
+            first
+            last
+            list-dir
+            nth
+            prn
+            prnl
             regexp-split
+            second
+            str
+            third
+            true
 
             )
 
