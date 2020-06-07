@@ -78,7 +78,7 @@ This example Ubu could be executed as:
 i.e. program name `ubu` followed with action name `hello`. Command
 produces the output:
 
-    * ubu-execute: echo Hello Ubu
+    ubu-execute: echo Hello Ubu
 
 Ubu displays the executed actions, but it does not display the output
 of the action itself, by default. If we want to see "Hello Ubu", we
@@ -345,7 +345,7 @@ Syntax: `(action-default <expr> ...)`
 `action-help` defines `help` Action for usage help and registers it to
 Ubu.
 
-Syntax: `(action-help <name> <usage-line> ...)`
+Syntax: `(action-help <usage-line> ...)`
 
 
 ==== add
@@ -396,9 +396,9 @@ Syntax: `(del <proc>)`
 
 ==== dir
 
-`dir` ensures that directories exist.
+`dir` concatenates string arguments with slash.
 
-Syntax: `(dir <dir> ...)`
+Syntax: `(dir <str-or-strlist> ...)`
 
 
 ==== env
@@ -413,6 +413,36 @@ Syntax: `(env <env-var>)`
 `eva` evaluates code given as quote expression.
 
 Syntax: `(eva <code>)`
+
+
+==== file-base
+
+`file-base` returns the basename of file (or files). Basename includes
+only the file body, i.e. no directory nor extension.
+
+Syntax: `(file-base <file-or-filelist> ...)`
+
+
+==== file-dir
+
+`file-dir` returns the directory name of file (or files).
+
+Syntax: `(file-dir <file-or-filelist> ...)`
+
+
+==== file-ext
+
+`file-ext` returns the extension name of file (or files).
+
+Syntax: `(file-ext <file-or-filelist> ...)`
+
+
+==== file-name
+
+`file-name` returns the name of file (or files). Name includes
+file base and extension, but no directory.
+
+Syntax: `(file-name <file-or-filelist> ...)`
 
 
 ==== for
@@ -454,7 +484,7 @@ Syntax: `(glu <sep> <str-or-strlist> ...)`
 
 ==== in-dir
 
-`in-dir` executes expression(s) in the selected direcotry and returns
+`in-dir` executes expression(s) in the selected directory and returns
 back.
 
 Syntax: `(in-dir <dir> <expr> ...)`
@@ -477,9 +507,12 @@ Syntax: `(lognl <level> <msg> ...)`
 
 ==== map-files
 
-`map-files` maps list of files to new directory and
+`map-files` maps list of files (or one file) to new directory and
 extension. Directory is mapped if `'dir` option is given, and
 extension is mapped if `'ext` option is given.
+
+If multiple files are process, a list of results is returned. If only
+one file is process, the result is also a single file name.
 
 Syntax: `(map-files <file-or-filelist> ['dir <new-dir>] ['ext <new-ext>])`
 
@@ -584,6 +617,13 @@ same number of entries. Otherwise, if any of the sources is newer than
 target, `true` is returned.
 
 Syntax: `(ubu-update? <source-or-list> <target-or-list>)`
+
+
+==== use-dir
+
+`use-dir` ensures that directories exist.
+
+Syntax: `(use-dir <dir> ...)`
 
 
 ==== with-log

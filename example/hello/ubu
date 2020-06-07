@@ -68,7 +68,7 @@
 
 ;; Ensure that build and bin directories exists.
 (action setup-dirs
-        (dir "build" "bin"))
+        (use-dir "build" "bin"))
 
 ;; Compile C-files.
 (action compile

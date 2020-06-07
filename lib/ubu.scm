@@ -42,6 +42,10 @@
             dir
             env
             eva
+            file-base
+            file-dir
+            file-ext
+            file-name
             for
             gap
             get
@@ -63,6 +67,7 @@
             ubu-for-updates
             ubu-to-update
             ubu-update?
+            use-dir
             with-log
             with-output
 
@@ -462,7 +467,7 @@
   (string-append (filename name) new-ext))
 
 
-;; Map files with new directories and extensions.
+;; Map files (or file) with new directories and extensions.
 ;;
 ;; Example:
 ;;
@@ -472,23 +477,26 @@
 ;;      'ext ".o"))
 ;;
 (define (map-files files . maps)
-  (reverse
-   (let file-loop ((files (if (list? files) files (list files))))
-     (if (pair? files)
-         (cons
-          (let map-loop ((tmp (car files))
-                         (tail (list->pair-list maps)))
-            (if (pair? tail)
-                (cond
-                 ((eq? 'dir (caar tail))
-                  (map-loop (retarget-dir tmp (cdar tail)) (cdr tail)))
-                 ((eq? 'ext (caar tail))
-                  (map-loop (retarget-ext tmp (cdar tail)) (cdr tail)))
-                 (else
-                  (map-loop tmp (cdr tail))))
-                tmp))
-          (file-loop (cdr files)))
-         empty))))
+  (let ((res (reverse
+              (let file-loop ((files (if (list? files) files (list files))))
+                (if (pair? files)
+                    (cons
+                     (let map-loop ((tmp (car files))
+                                    (tail (list->pair-list maps)))
+                       (if (pair? tail)
+                           (cond
+                            ((eq? 'dir (caar tail))
+                             (map-loop (retarget-dir tmp (cdar tail)) (cdr tail)))
+                            ((eq? 'ext (caar tail))
+                             (map-loop (retarget-ext tmp (cdar tail)) (cdr tail)))
+                            (else
+                             (map-loop tmp (cdr tail))))
+                           tmp))
+                     (file-loop (cdr files)))
+                    empty)))))
+    (if (list? files)
+        res
+        (car res))))
 
 
 ;; Collect files based on given glob pattern.
@@ -510,15 +518,16 @@
 
 
 ;; Run shell command as support command.
-(define (cmd shell-command)
-  (let ((ret (capture-shell-command shell-command)))
+(define (cmd shell-cmd . rest)
+  (let* ((cmdstr (apply gap (cons shell-cmd rest)))
+         (ret (capture-shell-command cmdstr)))
     (if (= (car ret) 0)
         (string-trim-right (second ret) #\newline)
         (ubu-fatal "Failing command: " shell-command))))
 
 
 ;; Ensure that dir is present.
-(define (dir ensure-dir . rest)
+(define (use-dir ensure-dir . rest)
   (let ((dirs (if (pair? rest) (cons ensure-dir rest) (list ensure-dir))))
     (for-each (lambda (dir)
                 (unless (file-exists? dir)
@@ -535,6 +544,42 @@
        (chdir dir)
        code ...
        (chdir cur-dir)))))
+
+
+(define (file-attr attr-fn arg-list)
+  (cond
+   ((= 1 (length arg-list))
+    (attr-fn (car arg-list)))
+   (else
+    (map attr-fn arg-list))))
+
+
+;; Return basename (i.e. no dir nor extension) of file(s).
+(define (file-base . rest)
+  (file-attr (lambda (filename)
+               (basename (car (map match:substring (list-matches "[^.]+" filename)))))
+             (flat-args-1 rest)))
+
+
+;; Return directory name of file(s).
+(define (file-dir . rest)
+  (file-attr (lambda (filename)
+               (dirname filename))
+             (flat-args-1 rest)))
+
+
+;; Return extensions of file(s).
+(define (file-ext . rest)
+  (file-attr (lambda (filename)
+               (last (map match:substring (list-matches "[^.]+" filename))))
+             (flat-args-1 rest)))
+
+
+;; Return filename (i.e. no dir, but extension) of file(s).
+(define (file-name . rest)
+  (file-attr (lambda (filename)
+               (basename filename))
+             (flat-args-1 rest)))
 
 
 
@@ -1098,11 +1143,15 @@
 
 ;; Get conf value.
 (define (get key . rest)
+  (define (get-val key)
+    (if (hash-has-key? ubu-var key)
+        (hash-ref ubu-var key)
+        #nil))
   (if (pair? rest)
       (map (lambda (i)
-             (get i))
+             (get-val i))
            (cons key rest))
-      (hash-ref ubu-var key)))
+      (get-val key)))
 
 
 ;; Add to conf value (list type value).
@@ -1119,9 +1168,8 @@
 
 
 ;; Concatenate without spacing.
-(define cat
-  (lambda args
-    (string-concatenate (flat-args-1 args))))
+(define (cat . rest)
+  (string-concatenate (flat-args-1 rest)))
 
 
 ;; Concatenate with given separator.
@@ -1132,6 +1180,11 @@
 ;; Concatenate with space.
 (define (gap . rest)
   (string-join (flat-args-1 rest) " "))
+
+
+;; Concatenate with slash.
+(define (dir . rest)
+  (string-join (flat-args-1 rest) "/"))
 
 
 ;; Add option to each argument.
@@ -1323,7 +1376,7 @@
 (action ubu-variables
         (let ((keys (hash-keys ubu-var)))
           (map (lambda (key)
-                 (format #t "  ~30a ~a\n" key (hash-ref ubu-var key)))
+                 (format #t "  ~30a ~a\n" key (get key)))
                (sort keys string<))))
 
 

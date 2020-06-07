@@ -62,7 +62,7 @@
                              'ext ".o")))
 
 (action setup-dirs
-        (dir "build" "bin"))
+        (use-dir "build" "bin"))
 
 (action compile
         (gcc-compile-files 
