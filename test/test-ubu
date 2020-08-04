@@ -59,4 +59,46 @@
 
   Copyright (c) 2019, Tero Isannainen"))
 
+(test-equal "setup" #t
+            (string=?
+             (basic-cmd "ubu setup-dirs")
+             ""))
+
+(test-equal "clean" #t
+            (string=?
+             (basic-cmd "ubu clean")
+             "* ubu-execute: rm -f build/* bin/* "))
+
+
+(test-equal "compile" #t
+            (string=?
+             (basic-cmd "ubu compile")
+             "* ubu-execute: gcc -Wall -g -c src/hello_print.c -o build/hello_world.o 
+* ubu-execute: gcc -Wall -g -c src/hello_world.c -o build/hello_print.o 
+src/hello_world.c: In function ‘main’:
+src/hello_world.c:7:9: warning: unused variable ‘i’ [-Wunused-variable]
+    7 |     int i = 0;
+      |         ^"))
+
+
+(test-equal "link" #t
+            (string=?
+             (basic-cmd "ubu link")
+             "* ubu-execute: gcc -o bin/hello build/hello_print.o build/hello_world.o "))
+
+
+(test-equal "run" #t
+            (string=?
+             (basic-cmd "bin/hello")
+             "Hello world!"))
+
+
+(test-equal "dist-clean" #t
+            (string=?
+             (basic-cmd "ubu dist-clean")
+             "* ubu-execute: rm -f build/* bin/* 
+* ubu-execute: rm -rf build bin "))
+
+
+
 (test-end)
