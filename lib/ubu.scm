@@ -45,7 +45,10 @@
             file-base
             file-dir
             file-ext
+            file-mapping-type
             file-name
+            file-or-directory-is-newer?
+            file-update?
             for
             gap
             get
@@ -64,6 +67,9 @@
             sh-ser
             sh-set
             times
+            ubu-cond-for-updates
+            ubu-cond-to-update
+            ubu-cond-update?
             ubu-for-updates
             ubu-to-update
             ubu-update?
@@ -255,8 +261,6 @@
           (append (car args) (apply flat-args (cdr args))))
          ((empty? (car args))
           (apply flat-args (cdr args)))
-         ((null? (car args))
-          (apply flat-args (cdr args)))
          ((not (car args))
           (apply flat-args (cdr args)))
          (else
@@ -273,8 +277,6 @@
            ((list? (car tail))
             (append (car tail) (once (cdr tail))))
            ((empty? (car tail))
-            (once (cdr tail)))
-           ((null? (car tail))
             (once (cdr tail)))
            ((not (car tail))
             (once (cdr tail)))
@@ -341,6 +343,7 @@
     ;; (errprnl "Exiting UBU with error(s) ..."))
     (exit code)))
   ;;#t))
+
 
 ;; Fatal error.
 (define ubu-fatal
@@ -523,7 +526,7 @@
          (ret (capture-shell-command cmdstr)))
     (if (= (car ret) 0)
         (string-trim-right (second ret) #\newline)
-        (ubu-fatal "Failing command: " shell-command))))
+        (ubu-fatal "Failing command: " shell-cmd))))
 
 
 ;; Ensure that dir is present.
@@ -591,46 +594,158 @@
   (stat:mtime (stat file)))
 
 
-;; Is a newer files than b, or is b not existing.
-(define (newer? a b)
+;; Return mapping (dependency) type: many-to-many, many-to-one,
+;; one-to-many, or one-to-one.
+(define (file-mapping-type sources targets)
+  (cond
+   ((and (list? sources)
+         (list? targets)) 'many-to-many)
+   ((list? sources)       'many-to-one)
+   ((list? targets)       'one-to-many)
+   (else                  'one-to-one)))
+
+
+;; Generic file state comparison between files "a" and "b".
+;;
+;; Comparison is made with "cond-fn" function. If "cond-fn" returns true,
+;; "file-update?" returns true as well.
+;;
+;; If file "b" does not exist, "file-update?" return true.
+;;
+;; If file "a" does not exist, error is issued.
+(define (file-update? cond-fn a b)
   (unless (file-exists? a)
     (ubu-fatal "Source file does not exist: " a))
   (if (not (file-exists? b))
       #t
-      (if (> (file-or-directory-modify-seconds a)
-             (file-or-directory-modify-seconds b))
-          #t
-          #f)))
+      (cond-fn a b)))
 
 
-;; Check if update is needed, i.e. sources are newer than targets.
-(define (ubu-update? sources targets)
+;; Compare timestamps of a and b. Return true if a is newer.
+(define (file-or-directory-is-newer? a b)
+  (> (file-or-directory-modify-seconds a)
+     (file-or-directory-modify-seconds b)))
+
+
+;; Check if update is needed, i.e. sources are "newer" than targets.
+;; Use "cond-fn" for comparison.
+(define (ubu-cond-update? cond-fn sources targets)
   (cond
 
+   ;; N->N mapping.
    ((and (list? sources)
          (list? targets))
     (let loop ((s sources)
                (t targets))
       (if (and (pair? s)
                (pair? t))
-          (if (newer? (car s) (car t))
+          (if (file-update? cond-fn (car s) (car t))
               #t
               (loop (cdr s) (cdr t)))
           #f)))
 
-    ((list? targets)
-     (newer? sources (car targets)))
+   ;; 1->N mapping.
+   ((list? targets)
+    (file-update? cond-fn sources (car targets)))
 
-    ((list? sources)
-     (let loop ((s sources))
-       (if (pair? s)
-           (if (newer? (car s) targets)
-               #t
-               (loop (cdr s)))
-           #f)))
+   ;; N->1 mapping.
+   ((list? sources)
+    (let loop ((s sources))
+      (if (pair? s)
+          (if (file-update? cond-fn (car s) targets)
+              #t
+              (loop (cdr s)))
+          #f)))
 
-    (else
-     (newer? sources targets))))
+    ;; 1->1 mapping.
+   (else
+    (file-update? cond-fn sources targets))))
+
+
+;; Reduce the sources and targets to lists that require updating. Use
+;; "cond-fn" for comparison.
+;;
+;; Return with "values" the updatable: sources, targets. Return false
+;; in-place of a singular file, if update is not needed. Return empty
+;; lists, for many-to-many mappings.
+(define (ubu-cond-to-update cond-fn sources targets)
+
+  (let ((mapping-type (file-mapping-type sources targets)))
+
+    (case mapping-type
+
+      ((many-to-many)
+       (let loop ((s sources)
+                  (t targets)
+                  (up-s '())
+                  (up-t '()))
+         (if (and (pair? s)
+                  (pair? t))
+             (if (file-update? cond-fn (car s) (car t))
+                 (loop (cdr s)
+                       (cdr t)
+                       (cons (car s) up-s)
+                       (cons (car t) up-t))
+                 (loop (cdr s)
+                       (cdr t)
+                       up-s
+                       up-t))
+             (values up-s up-t))))
+
+      ((many-to-one)
+       (let loop ((s sources))
+         (if (pair? s)
+             (if (file-update? cond-fn (car s) targets)
+                 (values sources targets)
+                 (loop (cdr s)))
+             (values '() #f))))
+
+      ((one-to-many)
+       (if (file-update? cond-fn sources (car targets))
+           (values sources targets)
+           (values #f '())))
+
+      ((one-to-one)
+       (if (file-update? cond-fn sources targets)
+           (values sources targets)
+           (values #f #f))))))
+
+
+;; Call "proc" for sources and targets that actually require
+;; updates. For many-to-many mapping, "proc" is run for each pair.
+;; Use "cond-fn" for comparison.
+;;
+;; If no files require updates, nothing is done.
+;;
+;; Example:
+;;
+;;     (sh-set (ubu-cond-for-updates file-or-directory-is-newer? c-files o-files
+;;                  (lambda (c o)
+;;                    (gap
+;;                     "gcc -Wall"
+;;                     (if (get "gcc-opt") "-O2" "-g")
+;;                     "-c" c
+;;                     "-o" o))))
+;;
+(define-syntax ubu-cond-for-updates
+  (syntax-rules ()
+    ((_ cond-fn sources targets proc)
+     (receive (s t)
+         (ubu-cond-to-update cond-fn sources targets)
+       (if (and (list? sources)
+                (list? targets))
+           (if (and (pair? s)
+                    (pair? t))
+               (map proc s t)
+               '())
+           (if (and s t)
+               (proc s t)
+               #f))))))
+
+
+;; Check if update is needed, i.e. sources are newer than targets.
+(define (ubu-update? sources targets)
+  (ubu-cond-update? file-or-directory-is-newer? sources targets))
 
 
 ;; Reduce the sources and targets to lists that require
@@ -639,42 +754,12 @@
 ;; Return with "values" the updatable: sources, targets.
 ;;
 (define (ubu-to-update sources targets)
-
-  (cond
-
-   ((and (list? sources)
-         (list? targets))
-    (let loop ((s sources)
-               (t targets)
-               (up-s '())
-               (up-t '()))
-      (if (and (pair? s)
-               (pair? t))
-          (if (newer? (car s) (car t))
-              (loop (cdr s) (cdr t) (cons (car s) up-s) (cons (car t) up-t))
-              (loop (cdr s) (cdr t) up-s up-t))
-          (values up-s up-t))))
-
-   ((list? targets)
-    (if (newer? sources (car targets))
-        (values sources targets)
-        (values #f '())))
-
-   ((list? sources)
-    (let loop ((s sources))
-      (if (pair? s)
-          (if (newer? (car s) targets)
-              (values sources targets)
-              (loop (cdr s)))
-          (values '() #f))))
-
-   (else
-    (if (newer? sources targets)
-        (values sources targets)
-        (values #f #f)))))
+  (ubu-cond-to-update file-or-directory-is-newer? sources targets))
 
 
-;; Call proc for sources and targets that actually require updates.
+;; Call "proc" for sources and targets that actually require
+;; updates. For many-to-many mapping, "proc" is run for each pair.
+;; Use "cond-fn" for comparison.
 ;;
 ;; If no files require updates, nothing is done.
 ;;
@@ -696,11 +781,16 @@
   (syntax-rules ()
     ((_ sources targets proc)
      (receive (s t)
-         (ubu-to-update sources targets)
-       (when (and (or (and (list? s) (pair? s)) s)
-                  (or (and (list? t) (pair? t)) t))
-         (proc s t))))))
-
+         (ubu-cond-to-update file-or-directory-is-newer? sources targets)
+       (if (and (list? sources)
+                (list? targets))
+           (if (and (pair? s)
+                    (pair? t))
+               (map proc s t)
+               '())
+           (if (and s t)
+               (proc s t)
+               #f))))))
 
 
 ;; ------------------------------------------------------------

@@ -109,7 +109,7 @@ The output of this command is:
 Actions that start with `ubu` are Ubu built-ins. The last in the list
 above is the defined user action.
 
-For a more complete example, please refer to "example/hello"
+For a more complete example, please refer to `example/hello`
 directory.
 
 
@@ -140,7 +140,7 @@ Helper body.
 The concepts are easiest to describe using a concrete example. Let's
 assume that we want to link C-object files in order to create an
 executable. We are skipping the complilation for now. The example
-lines are from "example/hello/ubu".
+lines are from `example/hello/ubu`.
 
 First we define the location of source and object files.
 
@@ -437,12 +437,46 @@ Syntax: `(file-dir <file-or-filelist> ...)`
 Syntax: `(file-ext <file-or-filelist> ...)`
 
 
+==== file-mapping-type
+
+`file-mapping-type` returns the mapping type between source and target
+files. The relation can be: `'many-to-many`, `'many-to-one`,
+`'one-to-many`, or `'one-to-one`.
+
+Syntax: `(file-mapping-type <source-or-list> <target-or-list>)`
+
+
 ==== file-name
 
 `file-name` returns the name of file (or files). Name includes
 file base and extension, but no directory.
 
 Syntax: `(file-name <file-or-filelist> ...)`
+
+
+==== file-or-directory-is-newer?
+
+`file-or-directory-is-newer?` returns true if `a` is newer than `b` in
+the filesystem.
+
+Syntax: `(file-or-directory-is-newer? <a> <b>)`
+
+
+==== file-update?
+
+`file-update?` tests whether file `a` should be used to generate `b`,
+i.e. `b` is in some sense outdated in comparison to `a`.
+
+Comparison is performed with `cond-fn`. If `cond-fn` returns true,
+then `file-update?` returns true as well.
+
+Before `cond-fn` is used `file-update?` checks that file `a`
+exists. Error is issued if the file does not exist.
+
+If file `b` does not exist, `file-update?` returns true, and `cond-fn`
+is not executed at all.
+
+Syntax: `(file-update? <cond-fn> <a> <b>)`
 
 
 ==== for
@@ -570,7 +604,7 @@ Syntax: `(sh-ser <cmd-str-list>)`
 
 ==== sh-set
 
-`sh-set` execute shell commands based on ":parallel" Variable
+`sh-set` execute shell commands based on `:parallel` Variable
 value. Execution is parallel if `:parallel` is `true` and serial if
 `false`.
 
@@ -585,11 +619,55 @@ to `<var>` and can be used within the body.
 Syntax: `(times (<var> <limit>) <expr> ...)`
 
 
+==== ubu-cond-for-updates
+
+`ubu-cond-for-updates` calls `proc` if updates are needed for sources and
+targets. `proc` is called only if there is something to update. `proc`
+is a function with two arguments: sources, targets. For `many-to-many`
+mapping, `proc` is called for each sources/targets pair.
+
+Update conditions are tested with `cond-fn`.
+
+Syntax: `(ubu-cond-for-updates <cond-fn> <source-or-list> <target-or-list> <proc>)`
+
+
+==== ubu-cond-to-update
+
+`ubu-cond-to-update` filters source and target files to a list that
+actually requires updating. The lists are returned with `values` (Guile
+function), i.e. multiple value return.
+
+If no updates are required, empty lists are returned.
+
+Update conditions are tested with `cond-fn`.
+
+Syntax: `(ubu-cond-to-update <cond-fn> <source-or-list> <target-or-list>)`
+
+
+==== ubu-cond-update?
+
+`ubu-cond-update?` checks if target files need to be renewed or generated
+again based on the file modification values. Return value is `true` if
+update is needed and `false` if update is not needed.
+
+If target file does not exist or requires update (by `cond-fn`),
+`true` is returned. Sources and targets are compared in pairs, if both
+have the same number of entries. Otherwise, if any of the sources is
+newer than target, `true` is returned.
+
+Update conditions are tested with `cond-fn`.
+
+Syntax: `(ubu-cond-update? <source-or-list> <target-or-list>)`
+
+
 ==== ubu-for-updates
 
-`ubu-for-updates` calls "proc" if updates are needed for sources and
-targets. "proc" is called only if there is something to update. "proc"
-is a function with two arguments: sources, targets.
+`ubu-for-updates` calls `proc` if updates are needed for sources and
+targets. `proc` is called only if there is something to update. `proc`
+is a function with two arguments: sources, targets. For `many-to-many`
+mapping, `proc` is called for each sources/targets pair.
+
+Update conditions are tested with `file-or-directory-is-newer?`.
 
 Syntax: `(ubu-for-updates <source-or-list> <target-or-list> <proc>)`
 
@@ -597,10 +675,14 @@ Syntax: `(ubu-for-updates <source-or-list> <target-or-list> <proc>)`
 ==== ubu-to-update
 
 `ubu-to-update` filters source and target files to a list that
-actually requires updating. The lists are returned with "values",
-i.e. multiple value return.
+actually requires updating. The lists are returned with `values`
+(Guile function), i.e. multiple value return.
 
-If no updates are required, empty lists are returned.
+If no updates are required, empty lists are returned for many-to-many
+mappings. If singular file is given (for sources or targets), false is
+return in-place of the file (for sources and targets).
+
+Update conditions are tested with `file-or-directory-is-newer?`.
 
 Syntax: `(ubu-to-update <source-or-list> <target-or-list>)`
 
@@ -611,10 +693,12 @@ Syntax: `(ubu-to-update <source-or-list> <target-or-list>)`
 again based on the file modification values. Return value is `true` if
 update is needed and `false` if update is not needed.
 
-If target file does not exist or is older than source, `true` is
+If target file does not exist or requires update, `true` is
 returned. Sources and targets are compared in pairs, if both have the
 same number of entries. Otherwise, if any of the sources is newer than
 target, `true` is returned.
+
+Update conditions are tested with `file-or-directory-is-newer?`.
 
 Syntax: `(ubu-update? <source-or-list> <target-or-list>)`
 
@@ -879,7 +963,7 @@ Syntax: `(list-dir <dir>)`
 
 `nth` returns the nth item from the list.
 
-Syntax: `(nth <list>)`
+Syntax: `(nth <list> <nth>)`
 
 
 ==== prn
