@@ -1459,7 +1459,11 @@
 ;; Display registered actions.
 (action ubu-actions
         (for (act (lookup-keys ubu-act))
-          (prnl "  " act)))
+          (if (and ubu-default-action
+                   (string=? ubu-default-action
+                             act))
+              (prnl "  * " act)
+              (prnl "    " act))))
 
 
 ;; Display variables.
