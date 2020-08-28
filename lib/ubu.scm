@@ -253,36 +253,34 @@
 
 
 ;; Full args flattening.
-(define flat-args
-  (lambda args
-    (if (pair? args)
-        (cond
-         ((list? (car args))
-          (append (car args) (apply flat-args (cdr args))))
-         ((empty? (car args))
-          (apply flat-args (cdr args)))
-         ((not (car args))
-          (apply flat-args (cdr args)))
-         (else
-          (cons (car args) (apply flat-args (cdr args)))))
-        empty)))
+(define (flat-args . args)
+  (if (pair? args)
+      (cond
+       ((list? (car args))
+        (append (car args) (apply flat-args (cdr args))))
+       ((empty? (car args))
+        (apply flat-args (cdr args)))
+       ((not (car args))
+        (apply flat-args (cdr args)))
+       (else
+        (cons (car args) (apply flat-args (cdr args)))))
+      empty))
 
 
 ;; One level args flattening.
-(define flat-args-1
-  (lambda args
-    (let once ((tail (car args)))
-      (if (pair? tail)
-          (cond
-           ((list? (car tail))
-            (append (car tail) (once (cdr tail))))
-           ((empty? (car tail))
-            (once (cdr tail)))
-           ((not (car tail))
-            (once (cdr tail)))
-           (else
-            (cons (car tail) (once (cdr tail)))))
-          empty))))
+(define (flat-args-1 . args)
+  (let once ((tail (car args)))
+    (if (pair? tail)
+        (cond
+         ((list? (car tail))
+          (append (car tail) (once (cdr tail))))
+         ((empty? (car tail))
+          (once (cdr tail)))
+         ((not (car tail))
+          (once (cdr tail)))
+         (else
+          (cons (car tail) (once (cdr tail)))))
+        empty)))
 
 
 
@@ -346,27 +344,23 @@
 
 
 ;; Fatal error.
-(define ubu-fatal
-  (lambda args
-    (apply errprnl (cons "ubu FATAL: " args))
-    (ubu-exit 1)))
+(define (ubu-fatal . args)
+  (apply errprnl (cons "ubu FATAL: " args))
+  (ubu-exit 1))
 
 
 ;; Normal error.
-(define ubu-error
-  (lambda args
-    (apply errprnl (cons "ubu ERROR: " args))))
+(define (ubu-error . args)
+  (apply errprnl (cons "ubu ERROR: " args)))
 
 ;; Warning.
-(define ubu-warn
-  (lambda args
-    (apply errprnl (cons "ubu WARNING: " args))))
+(define (ubu-warn . args)
+  (apply errprnl (cons "ubu WARNING: " args)))
 
 
 ;; Display info, i.e. list of lines.
-(define ubu-info
-  (lambda lines
-    (for-each prnl lines)))
+(define (ubu-info . lines)
+  (for-each prnl lines))
 
 
 ;; Command line arugments excluding executable.
@@ -888,43 +882,37 @@
 ;; Print collections:
 
 ;; Arguments to string.
-(define str
-  (lambda args
-    (apply string-append
-           (map (lambda (obj)
-                  (if (string? obj)
-                      obj
-                      (object->string obj)))
-                args))))
+(define (str . args)
+  (apply string-append
+         (map (lambda (obj)
+                (if (string? obj)
+                    obj
+                    (object->string obj)))
+              args)))
 
 
 ;; Print arguments.
-(define prn
-  (lambda args
-    (display (apply str args))))
+(define (prn . args)
+  (display (apply str args)))
 
 ;; Print arguments with newline.
-(define prnl
-  (lambda args
-    (display (apply str args))
-    (newline)))
+(define (prnl . args)
+  (display (apply str args))
+  (newline))
 
 ;; Debug print arguments.
-(define dbg
-  (lambda args
-    (display (apply str args))
-    (newline)))
+(define (dbg . args)
+  (display (apply str args))
+  (newline))
 
 ;; Error print arguments.
-(define errprn
-  (lambda args
-    (display (apply str args) (current-error-port))))
+(define (errprn . args)
+  (display (apply str args) (current-error-port)))
 
 ;; Error print arguments with newline.
-(define errprnl
-  (lambda args
-    (display (apply str args) (current-error-port))
-    (newline (current-error-port))))
+(define (errprnl . args)
+  (display (apply str args) (current-error-port))
+  (newline (current-error-port)))
 
 
 ;; Glob pattern to regexp.
@@ -1360,14 +1348,13 @@
 
 ;; Apply user defined mapping to CLI definition storage
 ;; (ubu-cli-maps).
-(define cli-map
-  (lambda args
-    (set! ubu-cli-map-def args)
-    (for-each (lambda (i)
-                (for-each (lambda (m)
-                            (ubu-cli-map-add (car i) (first m) (second m)))
-                          (cdr i)))
-              args)))
+(define (cli-map . args)
+  (set! ubu-cli-map-def args)
+  (for-each (lambda (i)
+              (for-each (lambda (m)
+                          (ubu-cli-map-add (car i) (first m) (second m)))
+                        (cdr i)))
+            args))
 
 
 ;; Parse cli (from user).
