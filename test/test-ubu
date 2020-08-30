@@ -19,27 +19,33 @@
 (test-equal "hello" #t
             (string=?
              (basic-cmd "ubu ubu-hello")
-             "hello"))
+             "> ubu-action: setup-dirs
+> ubu-action: ubu-hello
+hello"))
 
 (test-equal "actions" #t
             (string=?
              (basic-cmd "ubu ubu-actions")
-             "  ubu-actions
-  ubu-variables
-  ubu-cli-map
-  ubu-hello
-  help
-  setup-dirs
-  compile
-  link
-  build
-  clean
-  dist-clean"))
+             "> ubu-action: setup-dirs
+> ubu-action: ubu-actions
+    ubu-actions
+    ubu-variables
+    ubu-cli-map
+    ubu-hello
+    help
+    setup-dirs
+    compile
+    link
+    build
+    clean
+    dist-clean"))
 
 (test-equal "help" #t
             (string=?
              (basic-cmd "ubu help")
-             "
+             "> ubu-action: setup-dirs
+> ubu-action: help
+
   Build utility for: ubu testing
 
     Usage:
@@ -62,19 +68,24 @@
 (test-equal "setup" #t
             (string=?
              (basic-cmd "ubu setup-dirs")
-             ""))
+             "> ubu-action: setup-dirs
+> ubu-action: setup-dirs"))
 
 (test-equal "clean" #t
             (string=?
              (basic-cmd "ubu clean")
-             "* ubu-execute: rm -f build/* bin/* "))
+             "> ubu-action: setup-dirs
+> ubu-action: clean
+* ubu-execute: rm -f build/* bin/*"))
 
 
 (test-equal "compile" #t
             (string=?
              (basic-cmd "ubu compile")
-             "* ubu-execute: gcc -Wall -g -c src/hello_print.c -o build/hello_world.o 
-* ubu-execute: gcc -Wall -g -c src/hello_world.c -o build/hello_print.o 
+             "> ubu-action: setup-dirs
+> ubu-action: compile
+* ubu-execute: gcc -Wall -g -c src/hello_print.c -o build/hello_world.o
+* ubu-execute: gcc -Wall -g -c src/hello_world.c -o build/hello_print.o
 src/hello_world.c: In function ‘main’:
 src/hello_world.c:7:9: warning: unused variable ‘i’ [-Wunused-variable]
     7 |     int i = 0;
@@ -84,7 +95,9 @@ src/hello_world.c:7:9: warning: unused variable ‘i’ [-Wunused-variable]
 (test-equal "link" #t
             (string=?
              (basic-cmd "ubu link")
-             "* ubu-execute: gcc -o bin/hello build/hello_print.o build/hello_world.o "))
+             "> ubu-action: setup-dirs
+> ubu-action: link
+* ubu-execute: gcc -o bin/hello build/hello_print.o build/hello_world.o"))
 
 
 (test-equal "run" #t
@@ -96,8 +109,10 @@ src/hello_world.c:7:9: warning: unused variable ‘i’ [-Wunused-variable]
 (test-equal "dist-clean" #t
             (string=?
              (basic-cmd "ubu dist-clean")
-             "* ubu-execute: rm -f build/* bin/* 
-* ubu-execute: rm -rf build bin "))
+             "> ubu-action: setup-dirs
+> ubu-action: dist-clean
+* ubu-execute: rm -f build/* bin/*
+* ubu-execute: rm -rf build bin"))
 
 
 

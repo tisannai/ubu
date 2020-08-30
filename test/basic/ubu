@@ -4,6 +4,7 @@
 (add-to-load-path "../../lib")
 (use-modules (ubu))
 
+(ubu-apply-dot-files)
 (ubu-load (cat (getcwd) "/" "ubu-lib/ubu-utils.scm"))
 
 

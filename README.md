@@ -14,10 +14,18 @@ Ubu can be installed with:
 
     shell> ubu
 
+This installs the `ubu` library and the man page.
+
 The man page (generated from `doc/ubu.adoc`) can be build (separately)
 with:
 
     shell> ubu build-doc
+
+Perform:
+
+    shell> ubu ubu-actions
+
+to see all `ubu` actions.
 
 Installation depends on Ubu variables: `ubu-path` and
 `man-path`. `ubu-path` will be used for ubu-library installation and
@@ -27,6 +35,6 @@ Variable `ubu-path` is by default the first entry of `GUILE_LOAD_PATH`
 environment variable. Value of variable `man-path` is by default
 `$HOME/usr/man/man3`.
 
-User can change `ubu-path` for example by:
+User can change `ubu-path`, for example, applying:
 
     shell> ubu ubu-path=$HOME/usr/share

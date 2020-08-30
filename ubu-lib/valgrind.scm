@@ -22,6 +22,8 @@
 ;;     valgrind-log:  Valgrind log file name (default: valgrind.log)
 ;;     valgrind-supp: Valgrind suppressions control file name (default: none)
 ;;
+;; Example: (valgrind-analyze "foobar" (list "-f" "my-file.txt"))
+;;
 (define (valgrind-analyze program prog-args)
   (sh "valgrind"
       (get "valgrind-opts")

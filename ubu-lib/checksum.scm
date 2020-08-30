@@ -12,6 +12,10 @@
 ;; checksum calculation. This is useful for generated code where the
 ;; standard header might have a changing date, but the actual content
 ;; remains the same.
+;;
+;; Example: (file-checksum "my-file.txt")
+;;          (file-checksum "my-file.txt" 5)
+;;
 (define* (file-checksum filename #:key (skip-lines 0))
   (string-hash
    (string-concatenate

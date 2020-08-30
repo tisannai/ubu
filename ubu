@@ -30,10 +30,12 @@
 (set "doc-dst" "doc/UBU.3")
 
 ;; By default install ubu.
-(action-default
+
+(action install
  (sh "cp lib/ubu.scm" (get "ubu-path"))
  (build-doc)
  (sh "cp " (get "doc-dst") (cat (get "man-path") "/man3")))
+(ubu-default "install")
 
 ;; Build man pages.
 (action build-doc

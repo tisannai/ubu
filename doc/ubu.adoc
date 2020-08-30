@@ -10,7 +10,8 @@ UBU - Unique Build Utility
 
 == VERSION
 
-UBU v0.1 (2020-03-14)
+UBU v0.2 (2020-08-30)
+
 
 == Overview
 
@@ -24,7 +25,7 @@ Ubu features:
 
 * Command line options processing.
 
-* User help support.
+* User help support for command line.
 
 * Aliases for actions.
 
@@ -34,7 +35,7 @@ Ubu features:
 
 * File and command line based control.
 
-* Unlimited customization through Guile.
+* Unlimited customization and programmability through Guile.
 
 
 
@@ -64,8 +65,8 @@ command which displays "Hello Ubu".
 The `set` function defines an Ubu Variable called `message` with value
 "Hello Ubu". The variable is referenced in the `hello` action. The
 `sh` function concatenates its arguments with space separation and
-executes a shell command. This is the most common form of executions
-in Ubu.
+executes the resulting string as a shell command. This is the most
+common form of executions in Ubu.
 
 Finally, the Ubu actions are executed by calling the `ubu-run-cli`
 function. `ubu-run-cli` parses the command line arguments and executes
@@ -78,15 +79,19 @@ This example Ubu could be executed as:
 i.e. program name `ubu` followed with action name `hello`. Command
 produces the output:
 
-    ubu-execute: echo Hello Ubu
+    > ubu-action: hello
 
 Ubu displays the executed actions, but it does not display the output
 of the action itself, by default. If we want to see "Hello Ubu", we
 have to use higher log verbosity level.
 
-We can do this by setting `:log-level` parameter (Ubu Variable) to 4:
+We can do this by setting `:log-level` parameter (Ubu Variable) to
+"output"-level (or 5):
 
-    shell> ubu hello :log-level=4
+    shell> ubu hello :log-level=output
+
+This will add the executed shell commands and the output of the shell
+command itself to the output.
 
 Normally we don't want to see output from the actions, since typically
 we just want to transform files with Ubu.
@@ -132,7 +137,7 @@ they can called the same way as any Guile function. Actions are
 thunks, i.e. they have no arguments. This also means that they can be
 parametrized only through Ubu Variables.
 
-Helpers are regural Guile functions. They typically have arguments, as
+Helpers are regular Guile functions. They typically have arguments, as
 any function. Additionally, they might be parametrized through Ubu
 Variables, which can be referenced with `get` function anywhere in the
 Helper body.
@@ -151,7 +156,7 @@ First we define the location of source and object files.
 ....
 
 Then we can use Ubu Action API to collect C-files and map them to
-corresponsding object-files.
+corresponding object-files.
 
 ....
 (let ((c-files (get-files (glu "/" (get "hello-source-dir") "*.c"))))
@@ -192,13 +197,17 @@ The Helper `gcc-link-files` is defines as:
 `gcc-link-files` takes object-files and the executable name as
 arguments. It uses `ubu-update?` function to check, whether the
 linking is actually needed or not. If executable is missing or any of
-the object-files are newer than the executable, then update is
-performed (call to `sh`).
+the object-files are newer than the executable, `ubu-update?` returns
+`true` and update is performed (call to `sh`).
 
 Note that `gcc-link-files` is reusable for different projects, since
 it is parametrizable. Note also that is does not need any Ubu Variable
 based customizations. However, it could simply refer to Variables with
 `get` if needed.
+
+A set of Helper libraries are in `ubu-lib` directory. These are
+provides as templates/examples for users to modify and extend to their
+preferences.
 
 
 === Command Line Interface
@@ -224,21 +233,22 @@ CLI is declared with the `cli-map` function, for example:
 ....
 
 `cli-map` sets appreviations for Options, Parameters, and
-Actions. Without the `cli-map`, the full versions are only available.
+Actions. Without the `cli-map`, full length names are only usable.
 
-The `opt` section declares dash type options (e.g. `-q`), which set
-the associated Variable (`:quiet`) to `true`. Variables which start
-with a colon (`:`), are Ubu System Variables. Non-colon variables are
-user variables. Options default to `false` and if option is given on
-CLI, it is promoted to `true`.
+The `opt` (option) section declares dash type options (e.g. `-q`),
+which set the associated Variable (`:quiet`) to `true`. Variables
+which start with a colon (`:`), are Ubu System Variables. Non-colon
+variables are user variables. Options default to `false` and if option
+is given on CLI, it is promoted to `true`.
 
-The `par` section declares assign style variable assignments
-(`ll=4`). Numbers and boolean values are automatically converted to
-number and boolean type Guile values. Space separated string values
-become string lists, and single strings are passed as is.
+The `par` (parameter) section declares assign style variable
+assignments (`ll=4`). Numbers and boolean values are automatically
+converted to number and boolean type Guile values. Space separated
+string values become string lists, and single strings are passed as
+is.
 
-The `act` section declares aliases for Actions. These are convenient
-for repetitive interactive use.
+The `act` (action) section declares aliases for Actions. These are
+convenient for repetitive interactive use.
 
 Example CLI content could be:
 
@@ -281,6 +291,9 @@ libraries are maintained as Guile modules.
 Libraries can contain Variables and/or Helper functions, or any other
 Guile related items.
 
+Templates/examples for user specifiable Helper libraries can be found
+in `ubu-lib` directory.
+
 
 == Usage and maintanance
 
@@ -311,15 +324,19 @@ Current list of Ubu System Variables:
 * `:log-file`: Guile file/port for logging output (default: `<stdout>`).
 
 * `:log-level`: Verbosity level for logging: 0 = quiet, 1 = error, 2 =
-  warning, 3 = command (default), 4 = output
+  warning, 3 = actions (default), 4 = commands, 5 = stdout of commands
 
 * `:abort-on-error`: Abort with error (default: true).
 
 
 == API
 
-API functions are grouped into groups: Action API, Ubu API, and Utils
-API. Functions are listed in alphabetical order.
+Ubu provides API functions for common features in build programs. In a
+sense the API functions are a flat list of functions and they don't
+have one-to-one mapping to Actions and Helpers.
+
+However, API functions are grouped into groups: Action API, Ubu API,
+and Utils API. Functions are listed in alphabetical order.
 
 
 === Action API
@@ -497,7 +514,7 @@ Syntax: `(gap <str-or-strlist> ...)`
 ==== get
 
 `get` return value of one or more Ubu Variables. Multiple values are
-returned as a list.
+returned as a list. Return `#nil` if variables does not exist.
 
 Syntax: `(get <var> ...)`
 
@@ -507,6 +524,15 @@ Syntax: `(get <var> ...)`
 `get-files` return list of files using a globbing pattern.
 
 Syntax: `(get-files <pattern>)`
+
+
+==== get-or
+
+`get-or` returns value of one Ubu Variable. If variable does not exist
+the `or-val` is returned and if that is missing as well, then #nil is
+returned.
+
+Syntax: `(get-or <var> <or-val>)`
 
 
 ==== glu
@@ -741,6 +767,14 @@ Syntax: `(ubu-act-list)`
 `ubu-actions` displays Ubu Actions.
 
 Syntax: `(ubu-actions)`
+
+
+==== ubu-apply-dot-files
+
+Load dot-files at call location. First load "$HOME/.ubu" is, if
+exists. Then load ".ubu" from the current directory, if exists.
+
+Syntax: `(ubu-apply-dot-files)`
 
 
 ==== ubu-cli-map

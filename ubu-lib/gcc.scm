@@ -23,6 +23,9 @@
 ;; Variables:
 ;;     gcc-optimize: True if "-O2" needed, else "-g".
 ;;
+;; Example: (gcc-basic-compile-files (list "foo.c" "bar.c")
+;;                                   (list "foo.o" "bar.o"))
+;;
 (define (gcc-basic-compile-files c-files o-files)
   ;; Filter file pairs that actually need updates.
   (ubu-for-updates c-files
@@ -52,6 +55,9 @@
 ;;     gcc-optimize: True if "-O2" needed, else "-g".
 ;;     gcc-libs:     List of required libraries for executable (as given for "-l" option).
 ;;
+;; Example: (gcc-basic-compile-exe (list "foo.c" "bar.c")
+;;                                 "foobar")
+;;
 (define (gcc-basic-compile-exe c-files exe-file)
   (when (ubu-update? c-files exe-file)
     (sh "gcc"
@@ -77,6 +83,9 @@
 ;; Variables:
 ;;     gcc-libs:      List of required libraries for executable (as given for "-l" option).
 ;;
+;; Example: (gcc-basic-link-exe (list "foo.o" "bar.o")
+;;                              "foobar")
+;;
 (define (gcc-basic-link-files o-files exe-file)
   (when (ubu-update? o-files exe-file)
     (sh "gcc"
@@ -99,6 +108,9 @@
 ;;
 ;; Variables:
 ;;     gcc-comp-opts: GCC compilation options.
+;;
+;; Example: (gcc-compile-files (list "foo.c" "bar.c")
+;;                             (list "foo.o" "bar.o"))
 ;;
 (define (gcc-compile-files c-files o-files)
   ;; Filter file pairs that actually need updates.
@@ -129,6 +141,9 @@
 ;;     gcc-comp-opts: GCC compilation options.
 ;;     gcc-link-opts: GCC linker options.
 ;;
+;; Example: (gcc-compile-exe (list "foo.c" "bar.c")
+;;                           "foobar")
+;;
 (define (gcc-compile-exe c-files exe-file)
   (when (ubu-update? c-files exe-file)
     (sh "gcc"
@@ -150,6 +165,9 @@
 ;;
 ;; Variables:
 ;;     gcc-link-opts: GCC linker options.
+;;
+;; Example: (gcc-link-exe (list "foo.o" "bar.o")
+;;                        "foobar")
 ;;
 (define (gcc-link-files o-files exe-file)
   (when (ubu-update? o-files exe-file)

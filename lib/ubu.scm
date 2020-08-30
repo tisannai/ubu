@@ -13,20 +13,20 @@
 
 (define-module (ubu)
 
-  :use-module (srfi srfi-1)
-  :use-module (srfi srfi-8)
+  #:use-module (srfi srfi-1)
+  #:use-module (srfi srfi-8)
   ;; Needed for macro to refer the "receive" macro from srfi-8.
-  :autoload (srfi srfi-8) (receive)
-  :use-module (srfi srfi-9)
+  #:autoload (srfi srfi-8) (receive)
+  #:use-module (srfi srfi-9)
 
-  :use-module (ice-9 rdelim)
-  :use-module (ice-9 popen)
-  :use-module (ice-9 regex)
-  :use-module (ice-9 ftw)
-  :use-module (ice-9 threads)
-  :use-module (system repl repl)
-  :use-module (ice-9 textual-ports)
-  :use-module (ice-9 eval-string)
+  #:use-module (ice-9 rdelim)
+  #:use-module (ice-9 popen)
+  #:use-module (ice-9 regex)
+  #:use-module (ice-9 ftw)
+  #:use-module (ice-9 threads)
+  #:use-module (system repl repl)
+  #:use-module (ice-9 textual-ports)
+  #:use-module (ice-9 eval-string)
 
   #:export (
             ;; Action API
@@ -53,6 +53,7 @@
             gap
             get
             get-files
+            get-or
             glu
             in-dir
             log
@@ -80,6 +81,7 @@
             ;; Ubu API
             ubu-act-list
             ubu-actions
+            ubu-apply-dot-files
             ubu-cli-map
             ubu-default
             ubu-error
@@ -128,7 +130,7 @@
 
 
 
-(define ubu-version-num '(0 1))
+(define ubu-version-num '(0 2))
 
 ;; ------------------------------------------------------------
 ;; Utils:
@@ -822,32 +824,33 @@
 ;;  0 Quiet
 ;;  1 Error
 ;;  2 Warning
-;;  3 Command
-;;  4 Output
+;;  3 Action
+;;  4 Command
+;;  5 Output
 (define (log-to-level level)
 
   (define (symbol-to-level level)
     (case level
       ((error)   1)
       ((warning) 2)
-      ((command) 3)
-      ((output)  4)
+      ((action)  3)
+      ((command) 4)
+      ((output)  5)
       (else (ubu-fatal "Log symbol error: " level " ..."))))
 
-  (let ((lvl (cond
-              ((symbol? level)
-               (symbol-to-level level))
-              ((string? level)
-               (symbol-to-level (string->symbol level)))
-              (else
-               level))))
+  (let ((lvl (if (number? level)
+                 level
+                 (symbol-to-level (if (string? level)
+                                      (string->symbol level)
+                                      level)))))
     (if (and (>= lvl 1)
-             (<= lvl 4 ))
+             (<= lvl 5))
         lvl
         (ubu-fatal "Log level out of range: " lvl " ..."))))
 
+
 ;; Log messages.
-(define (log level  . rest)
+(define (log level . rest)
   (when ubu-log-out
     (when (<= (log-to-level level)
               (car ubu-log-level))
@@ -855,7 +858,9 @@
 
 ;; Log messages with newline.
 (define (lognl level . rest)
-  (apply log (append (cons level rest) (list "\n"))))
+  (log level
+       (string-append (string-join rest " ")
+                      "\n")))
 
 
 ;; Run code with set logging-level.
@@ -1232,6 +1237,16 @@
       (get-val key)))
 
 
+;; Get conf value or return the given default. If default is missing,
+;; return #nil.
+(define (get-or key . or-val)
+  (if (hash-has-key? ubu-var key)
+      (hash-ref ubu-var key)
+      (if (pair? or-val)
+          (first or-val)
+          #nil)))
+
+
 ;; Add to conf value (list type value).
 (define (add key val . rest)
   (if (pair? rest)
@@ -1410,6 +1425,16 @@
   (log-port-close))
 
 
+;; Apply ubu-dot-files, if any.
+(define (ubu-apply-dot-files)
+  (let ((home-dot-file (string-append (getenv "HOME") "/.ubu"))
+        (local-dot-file ".ubu"))
+    (when (file-exists? home-dot-file)
+      (ubu-load home-dot-file))
+    (when (file-exists? local-dot-file)
+      (ubu-load local-dot-file))))
+
+
 ;; Run list of actions.
 (define (ubu-run lst)
 
@@ -1429,9 +1454,13 @@
   (when ubu-post-action
     (set! lst (append lst ubu-post-action)))
 
+  ;; (ubu-apply-dot-files)
+
   (for-each (lambda (i)
               (if (lookup-ref ubu-act i)
-                  (eval-string (string-append "(" i ")"))
+                  (begin
+                    (lognl 'action "> ubu-action:" i)
+                    (eval-string (string-append "(" i ")")))
                   (ubu-fatal "Unknown command: " i)))
             lst)
 
@@ -1488,7 +1517,7 @@
 (set ":quiet" false)
 (set ":parallel" false)
 (set ":log-file" "<stdout>")
-(set ":log-level" "command")
+(set ":log-level" "action")
 (set ":abort-on-error" true)
 
 

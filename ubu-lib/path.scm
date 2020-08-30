@@ -9,7 +9,7 @@
 ;; Convert set of files with source extension to set of files with target
 ;; extension.
 ;;
-;; source-to-target takes either 2 or 3 arguments. First argument is
+;; map-source-to-target takes either 2 or 3 arguments. First argument is
 ;; always a list of source files.
 ;;
 ;; If 2 arguments are given, the second is replacement extension to
@@ -21,11 +21,19 @@
 ;; replace the source suffices.
 ;;
 ;; Arguments:
-;;     s-files: Glob pattern for source files.
+;;     s-files: Source files.
 ;;     rest:    Extension pattern only, or directory and extension pattern.
+;;
+;; Example: (map-source-to-target (list "foo.c" "bar.c")
+;;                                ".o")
+;;          (map-source-to-target (list "foo.c" "bar.c")
+;;                                "build" ".o")
 ;;
 (define (map-source-to-target s-files . rest)
   (cond
+
+   ((= 0 (length rest))
+    (ubu-fatal "map-source-to-target: missing mapping specification"))
 
    ((= 1 (length rest))
     ;; Map only extension.
