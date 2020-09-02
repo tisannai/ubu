@@ -535,6 +535,14 @@ returned.
 Syntax: `(get-or <var> <or-val>)`
 
 
+==== glob-dir
+
+`glob-dir` returns list of files from `dir` that match the glob
+pattern, `pat`.
+
+Syntax: `(glob-dir <dir> <pat>)`
+
+
 ==== glu
 
 `glu` concatenates string arguments with given separator.

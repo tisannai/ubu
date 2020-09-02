@@ -54,6 +54,7 @@
             get
             get-files
             get-or
+            glob-dir
             glu
             in-dir
             log
@@ -920,32 +921,35 @@
   (newline (current-error-port)))
 
 
-;; Glob pattern to regexp.
-(define (glob->regexp pat)
-  (let ((len (string-length pat)))
-    (string-concatenate
-     (append
-      (list "^")
-      (let loop ((i 0))
-        (if (< i len)
-            (let ((char (string-ref pat i)))
-              (case char
-                ((#\*) (cons "[^.]*" (loop (1+ i))))
-                ((#\?) (cons "[^.]" (loop (1+ i))))
-                ((#\[) (cons "[" (loop (1+ i))))
-                ((#\]) (cons "]" (loop (1+ i))))
-                ((#\\)
-                 (cons (list->string (list char (string-ref pat (1+ i))))
-                       (loop (+ i 2))))
-                (else
-                 (cons (regexp-quote (make-string 1 char))
-                       (loop (1+ i))))))
-            '()))
-      (list "$")))))
-
-
 ;; Glob directory.
+;;
+;;     (glob-dir "../foo" "*.c")
+;;
 (define (glob-dir dir pat)
+
+  ;; Glob pattern to regexp.
+  (define (glob->regexp pat)
+    (let ((len (string-length pat)))
+      (string-concatenate
+       (append
+        (list "^")
+        (let loop ((i 0))
+          (if (< i len)
+              (let ((char (string-ref pat i)))
+                (case char
+                  ((#\*) (cons "[^.]*" (loop (1+ i))))
+                  ((#\?) (cons "[^.]" (loop (1+ i))))
+                  ((#\[) (cons "[" (loop (1+ i))))
+                  ((#\]) (cons "]" (loop (1+ i))))
+                  ((#\\)
+                   (cons (list->string (list char (string-ref pat (1+ i))))
+                         (loop (+ i 2))))
+                  (else
+                   (cons (regexp-quote (make-string 1 char))
+                         (loop (1+ i))))))
+              '()))
+        (list "$")))))
+
   (let ((rx (make-regexp (glob->regexp pat))))
     (filter (lambda (x) (regexp-exec rx x)) (list-dir dir))))
 
