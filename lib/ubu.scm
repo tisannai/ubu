@@ -22,7 +22,7 @@
   #:use-module (ice-9 rdelim)
   #:use-module (ice-9 popen)
   #:use-module (ice-9 regex)
-  #:use-module (ice-9 ftw)
+  #:use-module ((ice-9 ftw) #:select (scandir))
   #:use-module (ice-9 threads)
   #:use-module (system repl repl)
   #:use-module (ice-9 textual-ports)
@@ -224,21 +224,23 @@
 (define (list-dir dir)
   (unless (file-exists? dir)
     (ubu-fatal "Directory missing: " dir))
-  (let* ((dh (opendir dir))
-         (entries (let loop ((entry (readdir dh))
-                             (entries '()))
-                    (if (eof-object? entry)
-                        entries
-                        (cond
-                         ((or (string=? "."  entry)
-                              (string=? ".." entry))
-                          (loop (readdir dh)
-                                entries))
-                         (else
-                          (loop (readdir dh)
-                                (cons entry entries))))))))
-    (closedir dh)
-    (reverse entries)))
+  (list-tail (scandir dir) 2)
+;;  (let* ((dh (opendir dir))
+;;         (entries (let loop ((entry (readdir dh))
+;;                             (entries '()))
+;;                    (if (eof-object? entry)
+;;                        entries
+;;                        (cond
+;;                         ((or (string=? "."  entry)
+;;                              (string=? ".." entry))
+;;                          (loop (readdir dh)
+;;                                entries))
+;;                         (else
+;;                          (loop (readdir dh)
+;;                                (cons entry entries))))))))
+;;    (closedir dh)
+;;    (reverse entries))
+  )
 
 
 ;; Return last in list.
