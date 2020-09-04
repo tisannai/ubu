@@ -224,17 +224,21 @@
 (define (list-dir dir)
   (unless (file-exists? dir)
     (ubu-fatal "Directory missing: " dir))
-  (let ((dh (opendir dir)))
-    (let loop ((dh dh))
-      (let ((entry (readdir dh)))
-        (if (eof-object? entry)
-            '()
-            (cond
-             ((or (string=? "."  entry)
-                  (string=? ".." entry))
-              (loop dh))
-             (else
-              (cons entry (loop dh)))))))))
+  (let* ((dh (opendir dir))
+         (entries (let loop ((entry (readdir dh))
+                             (entries '()))
+                    (if (eof-object? entry)
+                        entries
+                        (cond
+                         ((or (string=? "."  entry)
+                              (string=? ".." entry))
+                          (loop (readdir dh)
+                                entries))
+                         (else
+                          (loop (readdir dh)
+                                (cons entry entries))))))))
+    (closedir dh)
+    (reverse entries)))
 
 
 ;; Return last in list.
