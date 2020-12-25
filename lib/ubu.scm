@@ -24,6 +24,7 @@
   #:use-module (ice-9 regex)
   #:use-module ((ice-9 ftw) #:select (scandir))
   #:use-module (ice-9 threads)
+  #:use-module (ice-9 format)
   #:use-module (system repl repl)
   #:use-module (ice-9 textual-ports)
   #:use-module (ice-9 eval-string)
