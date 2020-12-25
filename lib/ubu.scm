@@ -1037,6 +1037,7 @@
 (define ubu-post-action #f)
 (define ubu-log-out #f)
 (define ubu-log-level '())
+(define ubu-build-ins '())
 
 
 ;; Push log-level to log-level stack.
@@ -1159,6 +1160,18 @@
              (lambda ()
                (ubu-info line ...)))
            (ubu-reg-act "help"))))))
+
+
+(define-syntax action-build-in
+  (syntax-rules ()
+    ((action fn-name code ...)
+     (begin
+       (define fn-name
+         (lambda ()
+           code ...))
+       (ubu-reg-act 'fn-name)
+       (set! ubu-build-ins (append ubu-build-ins
+                                   (list (symbol->string 'fn-name))))))))
 
 
 ;; For loop for list.
@@ -1449,6 +1462,17 @@
 ;; Run list of actions.
 (define (ubu-run lst)
 
+  ;; Return true if only build-in actions in the list.
+  (define (all-build-in-actions lst)
+    (let check ((tail lst)
+                (ret #t))
+      (if (pair? tail)
+          (check (cdr tail)
+                 (and ret
+                      (member (car tail)
+                              ubu-build-ins)))
+          ret)))
+
   ;; Resolve some of the settings for better performance.
   (log-port-open (get ":log-file"))
   (set! ubu-log-out (not (get ":quiet")))
@@ -1459,11 +1483,13 @@
           (ubu-warn "No actions given ...")
           (set! lst (list ubu-default-action))))
 
-  (when ubu-pre-action
-    (set! lst (append ubu-pre-action lst)))
+  (when (not (all-build-in-actions lst))
 
-  (when ubu-post-action
-    (set! lst (append lst ubu-post-action)))
+    (when ubu-pre-action
+      (set! lst (append ubu-pre-action lst)))
+
+    (when ubu-post-action
+      (set! lst (append lst ubu-post-action))))
 
   ;; (ubu-apply-dot-files)
 
@@ -1484,42 +1510,42 @@
 
 
 ;; Display registered actions.
-(action ubu-actions
-        (for (act (lookup-keys ubu-act))
-          (if (and ubu-default-action
-                   (string=? ubu-default-action
-                             act))
-              (prnl "  * " act)
-              (prnl "    " act))))
+(action-build-in ubu-actions
+                 (for (act (lookup-keys ubu-act))
+                   (if (and ubu-default-action
+                            (string=? ubu-default-action
+                                      act))
+                       (prnl "  * " act)
+                       (prnl "    " act))))
 
 
 ;; Display variables.
-(action ubu-variables
-        (let ((keys (hash-keys ubu-var)))
-          (map (lambda (key)
-                 (format #t "  ~30a ~a\n" key (get key)))
-               (sort keys string<))))
+(action-build-in ubu-variables
+                 (let ((keys (hash-keys ubu-var)))
+                   (map (lambda (key)
+                          (format #t "  ~30a ~a\n" key (get key)))
+                        (sort keys string<))))
 
 
 ;; Display cli-map.
-(action ubu-cli-map
-        (if ubu-cli-map-def
-            (begin
-              (for-each (lambda (def)
-                          (format #t "\n  ~a\n"
-                                  (case (car def)
-                                    ((opt) "Options:")
-                                    ((par) "Parameters:")
-                                    ((act) "Action aliases:")))
-                          (for-each (lambda (pair)
-                                      (format #t "    ~8a ~a\n" (first pair) (second pair)))
-                                    (cdr def)))
-                        ubu-cli-map-def)
-              (format #t "\n"))
-            (ubu-warn "No cli-map defined ...")))
+(action-build-in ubu-cli-map
+                 (if ubu-cli-map-def
+                     (begin
+                       (for-each (lambda (def)
+                                   (format #t "\n  ~a\n"
+                                           (case (car def)
+                                             ((opt) "Options:")
+                                             ((par) "Parameters:")
+                                             ((act) "Action aliases:")))
+                                   (for-each (lambda (pair)
+                                               (format #t "    ~8a ~a\n" (first pair) (second pair)))
+                                             (cdr def)))
+                                 ubu-cli-map-def)
+                       (format #t "\n"))
+                     (ubu-warn "No cli-map defined ...")))
 
-(action ubu-hello
-        (prnl "hello"))
+(action-build-in ubu-hello
+                 (prnl "hello"))
 
 
 ;; ------------------------------------------------------------
