@@ -82,12 +82,12 @@ hello"))
              (basic-cmd "ubu compile")
              "> ubu-action: setup-dirs
 > ubu-action: compile
-* ubu-execute: gcc -Wall -g -c src/hello_world.c -o build/hello_print.o
+* ubu-execute: gcc -Wall -g -c src/hello_world.c -o build/hello_world.o
 src/hello_world.c: In function ‘main’:
 src/hello_world.c:7:9: warning: unused variable ‘i’ [-Wunused-variable]
     7 |     int i = 0;
       |         ^
-* ubu-execute: gcc -Wall -g -c src/hello_print.c -o build/hello_world.o"))
+* ubu-execute: gcc -Wall -g -c src/hello_print.c -o build/hello_print.o"))
 
 
 (test-equal "link" #t
@@ -95,7 +95,7 @@ src/hello_world.c:7:9: warning: unused variable ‘i’ [-Wunused-variable]
              (basic-cmd "ubu link")
              "> ubu-action: setup-dirs
 > ubu-action: link
-* ubu-execute: gcc -o bin/hello build/hello_world.o build/hello_print.o"))
+* ubu-execute: gcc -o bin/hello build/hello_print.o build/hello_world.o"))
 
 
 (test-equal "run" #t

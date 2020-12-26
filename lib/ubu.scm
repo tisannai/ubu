@@ -485,23 +485,22 @@
 ;;      'ext ".o"))
 ;;
 (define (map-files files . maps)
-  (let ((res (reverse
-              (let file-loop ((files (if (list? files) files (list files))))
-                (if (pair? files)
-                    (cons
-                     (let map-loop ((tmp (car files))
-                                    (tail (list->pair-list maps)))
-                       (if (pair? tail)
-                           (cond
-                            ((eq? 'dir (caar tail))
-                             (map-loop (retarget-dir tmp (cdar tail)) (cdr tail)))
-                            ((eq? 'ext (caar tail))
-                             (map-loop (retarget-ext tmp (cdar tail)) (cdr tail)))
-                            (else
-                             (map-loop tmp (cdr tail))))
-                           tmp))
-                     (file-loop (cdr files)))
-                    empty)))))
+  (let ((res (let file-loop ((files (if (list? files) files (list files))))
+               (if (pair? files)
+                   (cons
+                    (let map-loop ((tmp (car files))
+                                   (tail (list->pair-list maps)))
+                      (if (pair? tail)
+                          (cond
+                           ((eq? 'dir (caar tail))
+                            (map-loop (retarget-dir tmp (cdar tail)) (cdr tail)))
+                           ((eq? 'ext (caar tail))
+                            (map-loop (retarget-ext tmp (cdar tail)) (cdr tail)))
+                           (else
+                            (map-loop tmp (cdr tail))))
+                          tmp))
+                    (file-loop (cdr files)))
+                   empty))))
     (if (list? files)
         res
         (car res))))
