@@ -19,15 +19,13 @@
 (test-equal "hello" #t
             (string=?
              (basic-cmd "ubu ubu-hello")
-             "> ubu-action: setup-dirs
-> ubu-action: ubu-hello
+             "> ubu-action: ubu-hello
 hello"))
 
 (test-equal "actions" #t
             (string=?
              (basic-cmd "ubu ubu-actions")
-             "> ubu-action: setup-dirs
-> ubu-action: ubu-actions
+             "> ubu-action: ubu-actions
     ubu-actions
     ubu-variables
     ubu-cli-map

@@ -1043,6 +1043,13 @@ Syntax: `(second <list>)`
 Syntax: `(str <msg> ...)`
 
 
+==== lst
+
+`lst` convert argument to list if not a list.
+
+Syntax: `(lst <arg> ...)`
+
+
 ==== third
 
 `third` returns the third item from the list.

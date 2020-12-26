@@ -38,8 +38,8 @@
                               (if (get "gcc-optimize") "-O2" "-g")
                               "-c" c
                               "-o" o))
-                           up-c
-                           up-o)))))
+                           (lst up-c)
+                           (lst up-o))))))
 
 
 ;; Compile c-files directly to executable.
@@ -99,8 +99,8 @@
 
 ;; Compile c-files to o-files (object-files).
 ;;
-;; Files are compiled with given options. See below for control
-;; options.
+;; Files are compiled with given options either serially or in
+;; parallel (":parallel" option). See below for control options.
 ;;
 ;; Arguments:
 ;;     c-files: One/many c-files.
@@ -124,8 +124,8 @@
                               (get "gcc-comp-opts")
                               "-c" c
                               "-o" o))
-                           up-c
-                           up-o)))))
+                           (lst up-c)
+                           (lst up-o))))))
 
 
 ;; Compile c-files directly to executable.

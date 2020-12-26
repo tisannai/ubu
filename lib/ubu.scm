@@ -121,6 +121,7 @@
             regexp-split
             second
             str
+            lst
             third
             true
 
@@ -426,27 +427,25 @@
 
 
 ;; Execute shell commands in series or in parallel.
-(define (sh-set cmd . rest)
+(define (sh-set cmds)
   (if (get ":parallel")
-      (apply sh-par (cons cmd rest))
-      (apply sh-ser (cons cmd rest))))
+      (sh-par cmds)
+      (sh-ser cmds)))
 
 
 ;; Run shell commands in parallel.
 ;;(define (sh-par cmd . rest) #f)
-(define (sh-par cmd . rest)
-  (let ((lst (flat-args-1 (cons cmd rest))))
+(define (sh-par cmds)
+  (let ((lst cmds))
     (let ((ths (map (lambda (cmd)
-                      (call-with-new-thread
-                       (lambda ()
-                         (sh cmd))))
-                    lst)))
+                      (call-with-new-thread cmd))
+                    (map (lambda (cmd) (sh cmd)) lst))))
       (for-each join-thread ths))))
 
 
 ;; Run shell commands in series.
-(define (sh-ser cmd . rest)
-  (let ((lst (flat-args-1 (cons cmd rest))))
+(define (sh-ser cmds)
+  (let ((lst cmds))
     (for-each sh lst)))
 
 
@@ -902,6 +901,12 @@
                     obj
                     (object->string obj)))
               args)))
+
+;; Arguments to list.
+(define (lst arg)
+  (if (pair? arg)
+      arg
+      (list arg)))
 
 
 ;; Print arguments.
