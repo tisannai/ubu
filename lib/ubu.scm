@@ -434,12 +434,14 @@
 
 
 ;; Run shell commands in parallel.
-;;(define (sh-par cmd . rest) #f)
 (define (sh-par cmds)
   (let ((lst cmds))
     (let ((ths (map (lambda (cmd)
                       (call-with-new-thread cmd))
-                    (map (lambda (cmd) (sh cmd)) lst))))
+                    (map (lambda (cmd)
+                           (lambda ()
+                             (output-shell-command cmd)))
+                         lst))))
       (for-each join-thread ths))))
 
 
@@ -768,17 +770,13 @@
 ;;
 ;; Example:
 ;;
-;;     (ubu-for-updates c-files o-files
-;;                      (lambda (up-c up-o)
-;;                        (sh-set
-;;                         (map (lambda (c o)
-;;                                (gap
-;;                                 "gcc -Wall"
-;;                                 (if (get "gcc-opt") "-O2" "-g")
-;;                                 "-c" c
-;;                                 "-o" o))
-;;                              up-c
-;;                              up-o))))
+;;     (sh-set (ubu-for-updates c-files o-files
+;;                                (lambda (c o)
+;;                                  (gap
+;;                                   "gcc -Wall"
+;;                                   (if (get "gcc-opt") "-O2" "-g")
+;;                                   "-c" c
+;;                                   "-o" o))))
 ;;
 (define-syntax ubu-for-updates
   (syntax-rules ()
