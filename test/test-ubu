@@ -27,6 +27,8 @@ hello"))
              (basic-cmd "ubu ubu-actions")
              "> ubu-action: ubu-actions
     ubu-actions
+    ubu-user-actions
+    ubu-system-actions
     ubu-variables
     ubu-cli-map
     ubu-hello

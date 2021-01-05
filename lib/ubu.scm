@@ -83,6 +83,8 @@
             ;; Ubu API
             ubu-act-list
             ubu-actions
+            ubu-user-actions
+            ubu-system-actions
             ubu-apply-dot-files
             ubu-cli-map
             ubu-default
@@ -223,26 +225,33 @@
 
 
 ;; List all directory entries, except dot files.
-(define (list-dir dir)
-  (unless (file-exists? dir)
-    (ubu-fatal "Directory missing: " dir))
-  (list-tail (scandir dir) 2)
-;;  (let* ((dh (opendir dir))
-;;         (entries (let loop ((entry (readdir dh))
-;;                             (entries '()))
-;;                    (if (eof-object? entry)
-;;                        entries
-;;                        (cond
-;;                         ((or (string=? "."  entry)
-;;                              (string=? ".." entry))
-;;                          (loop (readdir dh)
-;;                                entries))
-;;                         (else
-;;                          (loop (readdir dh)
-;;                                (cons entry entries))))))))
-;;    (closedir dh)
-;;    (reverse entries))
-  )
+;;
+;; Optionally filter out files, dirs, and/or hidden files.
+;;
+;; Example:
+;;
+;;     (list-dir "." #:no-files #t)
+;;
+(define* (list-dir dir
+                   #:key
+                   (no-files #f)
+                   (no-dirs #f)
+                   (no-hidden #f))
+
+  (define (filter-entries entry)
+    (let ((type-files (lambda (entry)
+                        (if (file-is-directory? (string-append dir "/" entry))
+                            (if no-dirs #f #t)
+                            (if no-files #f #t)))))
+      (if (and no-hidden
+               (string=? "." (substring entry 0 1)))
+          #f
+          (type-files entry))))
+
+  (if (file-exists? dir)
+      (filter filter-entries
+              (list-tail (scandir dir) 2))
+      '()))
 
 
 ;; Return last in list.
@@ -1519,6 +1528,22 @@
                                       act))
                        (prnl "  * " act)
                        (prnl "    " act))))
+
+
+(action-build-in ubu-user-actions
+                 (for (act (lookup-keys ubu-act))
+                   (when (not (string-contains act "ubu-"))
+                     (if (and ubu-default-action
+                              (string=? ubu-default-action
+                                        act))
+                         (prnl "  * " act)
+                         (prnl "    " act)))))
+
+
+(action-build-in ubu-system-actions
+                 (for (act (lookup-keys ubu-act))
+                   (when (string-contains act "ubu-")
+                     (prnl "    " act))))
 
 
 ;; Display variables.

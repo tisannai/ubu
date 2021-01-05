@@ -772,7 +772,7 @@ Syntax: `(ubu-act-list)`
 
 ==== ubu-actions
 
-`ubu-actions` displays Ubu Actions.
+`ubu-actions` displays all Ubu Actions.
 
 Syntax: `(ubu-actions)`
 
@@ -906,6 +906,20 @@ Syntax: `(ubu-run-cli <name> ...)`
 Syntax: `ubu-var`
 
 
+==== ubu-system-actions
+
+`ubu-system-actions` displays Ubu System Actions (built-in actions).
+
+Syntax: `(ubu-system-actions)`
+
+
+==== ubu-user-actions
+
+`ubu-user-actions` displays Ubu User Actions (built-in actions).
+
+Syntax: `(ubu-user-actions)`
+
+
 ==== ubu-variables
 
 `ubu-variables` displays Ubu Variables and their values.
@@ -996,7 +1010,9 @@ Syntax: `(last <list>)`
 
 ==== list-dir
 
-`list-dir` list directory entries except the dot files.
+`list-dir` list directory entries except the dot files (`.` and
+`..`). Keyword arguments `#:no-files`, `#:no-dirs` `#:no-hidden` can
+be used (set to `#t`) to exclude entries, if needed.
 
 Syntax: `(list-dir <dir>)`
 
