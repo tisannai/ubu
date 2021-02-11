@@ -1,0 +1,14 @@
+#!/usr/bin/env ti-guile
+!#
+
+(use-modules (ubu))
+
+(set ":log-level" 'output)
+
+(action doit
+        (use-dir "build")
+        (sh "gcc " (cmd "pkg-config --cflags --libs guile-3.0") "-Wall -shared -fPIC -o build/lib-ubu-inotify.so src/inotify.c")
+        (sh "cp build/lib-ubu-inotify.so ~/usr/lib"))
+(ubu-default "doit")
+
+(ubu-run-cli)

@@ -1,5 +1,4 @@
-#!/usr/bin/sh
-exec ti-guile-script "$0" "$@"
+#!/usr/bin/env ti-guile
 !#
 
 (add-to-load-path "lib")
@@ -49,7 +48,9 @@ exec ti-guile-script "$0" "$@"
                  (sh "test-ubu"))))
 
 (action install-ubu-lib
-        (sh "cp -r ubu-lib" (get "ubu-path")))
+        (let* ((ubu-lib-dir (cat (get "ubu-path") "/ubu-lib")))
+          (sh "cp -r ubu-lib/*.scm" ubu-lib-dir)
+          (sh "cp ubu-lib/inotify/inotify.scm" ubu-lib-dir)))
 
 (action clean
         (sh "rm -f" (get "doc-dst")))
