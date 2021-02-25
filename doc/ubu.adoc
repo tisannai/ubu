@@ -372,6 +372,14 @@ Syntax: `(action-help <usage-line> ...)`
 Syntax: `(add <name> <val-or-vallist>)`
 
 
+==== add-files
+
+`add-files` adds file or files to a collection of files. If the
+addition is already in the collection, it is not added.
+
+Syntax: `(add-files <collection> <file-or-filelist> ...)`
+
+
 ==== cat
 
 `cat` concatenates string arguments without spaces.

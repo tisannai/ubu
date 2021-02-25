@@ -54,6 +54,7 @@
             gap
             get
             get-files
+            add-files
             get-or
             glob-dir
             glu
@@ -533,6 +534,17 @@
          (glob-dir dir pat))))
 
 
+;; Add files to collection, unless the file is already in.
+(define (add-files collection . addition)
+  (let ((lut (lookup-init collection))
+        (adds (flat-args-1 addition)))
+    (for-each (lambda (add)
+                (when (not (lookup-ref lut add))
+                  (lookup-set! lut add add)))
+              adds)
+    (lookup-keys lut)))
+
+
 ;; Run shell command as support command.
 (define (cmd shell-cmd . rest)
   (let* ((cmdstr (apply gap (cons shell-cmd rest)))
@@ -1010,6 +1022,17 @@
 ;; Make lookup.
 (define (make-lookup)
   (new-lookup empty (make-hash-table)))
+
+
+;; Initialize lookup from list.
+(define (lookup-init lst)
+  (let ((l (make-lookup)))
+    (for-each (lambda (i)
+                (if (list? i)
+                    (lookup-set! l (car i) (cdr i))
+                    (lookup-set! l i i)))
+              lst)
+    l))
 
 
 ;; Set value in lookup.
