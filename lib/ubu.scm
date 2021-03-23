@@ -63,6 +63,7 @@
             lognl
             map-files
             pair
+            join
             pcs
             ref
             set
@@ -273,6 +274,12 @@
       '()))
 
 
+;; Create list from arguments. Arguments can be scalars of lists
+;; themselves.
+(define (join . rest)
+  (flat-args-1 rest))
+
+
 ;; Full args flattening.
 (define (flat-args . args)
   (if (pair? args)
@@ -427,7 +434,7 @@
 
 ;; Execute shell command.
 (define (sh cmd . rest)
-  (let ((cmdstr (apply gap (cons cmd rest))))
+  (let ((cmdstr (apply gap (cons cmd (flat-args-1 rest)))))
     (let ((status (output-shell-command cmdstr)))
       (if (and
            (get ":abort-on-error")

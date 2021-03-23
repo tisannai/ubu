@@ -566,6 +566,13 @@ back.
 Syntax: `(in-dir <dir> <expr> ...)`
 
 
+==== join
+
+`join` creates a list of items, which are atoms or lists.
+
+Syntax: `(join <item-or-list> ...)`
+
+
 ==== log
 
 `log` outputs log messages using the given logging level.
