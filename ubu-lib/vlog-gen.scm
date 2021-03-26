@@ -167,7 +167,7 @@
                (if (file-exists? vehi)
                    (cat "-i " vehi)
                    "-a tb"))
-             "-o"
+             "-b -o"
              (ref 'tb-file)))))
 
 
