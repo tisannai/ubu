@@ -150,6 +150,9 @@
 
 
 (define (vlog-gen-tb ref)
+
+  (use-dir "tb" "test")
+
   (unless (file-exists? (ref 'clk-file))
     (vlog-gen-clock-and-reset-module '() #:file (ref 'clk-file)))
 

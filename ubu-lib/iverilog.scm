@@ -32,10 +32,10 @@
                                   (tb-files   #f)
                                   (test-files #f)
                                   (user-files #f))
-  (let ((files (append (if rtl-files  rtl-files  (iverilog-get-rtl-files))
-                       (if tb-files   tb-files   (iverilog-get-tb-files))
-                       (if user-files user-files '())
-                       (if test-files test-files (list (iverilog-get-test-file test-name))))))
+  (let ((files (append (or rtl-files  (iverilog-get-rtl-files))
+                       (or tb-files   (iverilog-get-tb-files))
+                       (or user-files '())
+                       (or test-files (list (iverilog-get-test-file test-name))))))
     (use-dir "sim")
     (in-dir "sim"
             (sh (gap "iverilog" (map (lambda (file) (cat "../" file)) files) "-o" tb-name))
@@ -51,10 +51,10 @@
                              #:tb-files   (ref 'tb-files))))
 
 
-(define* (iverilog-simulate-default dut-name #:key (user-files '()))
+(define* (iverilog-simulate-default dut-name #:key (user-files '()) (user-test #f))
   (let ((ref (vlog-gen-dut-ref-default dut-name #:user-files user-files)))
     (iverilog-simulate-files (ref 'tb-name)
-                             (ref 'test-name)
+                             (or user-test (ref 'test-name))
                              #:rtl-files  (ref 'rtl-files)
                              #:tb-files   (ref 'tb-files))))
 
@@ -64,6 +64,6 @@
   (iverilog-simulate-subblock dut-name))
 
 
-(define* (iverilog-generate-and-simulate-default dut-name #:key (user-files '()))
+(define* (iverilog-generate-and-simulate-default dut-name #:key (user-files '()) (user-test #f))
   (vlog-gen-default-tb dut-name)
-  (iverilog-simulate-default dut-name #:user-files user-files))
+  (iverilog-simulate-default dut-name #:user-files user-files #:user-test user-test))
