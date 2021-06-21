@@ -1,6 +1,8 @@
 (define-module (ubu-lib iverilog)
   #:export
   (
+   iverilog-compile-command-get
+   iverilog-compile-command-set
    iverilog-simulate-files
    iverilog-simulate-subblock
    iverilog-simulate-default
@@ -12,6 +14,16 @@
 (use-modules (tuile utils))
 (use-modules (tuile pr))
 (use-modules (ubu-lib vlog-gen))
+
+
+(define iverilog-compile-command "iverilog")
+
+(define (iverilog-compile-command-get)
+  iverilog-compile-command)
+
+(define (iverilog-compile-command-set compile-command)
+  (set! iverilog-compile-command compile-command)
+  compile-command)
 
 
 
@@ -38,7 +50,7 @@
                        (or test-files (list (iverilog-get-test-file test-name))))))
     (use-dir "sim")
     (in-dir "sim"
-            (sh (gap "iverilog" (map (lambda (file) (cat "../" file)) files) "-o" tb-name))
+            (sh (gap (iverilog-compile-command-get) (map (lambda (file) (cat "../" file)) files) "-o" tb-name))
             (sh "vvp" tb-name))
     (pr "Waves in: sim: \"sim/" tb-name ".vcd\"")))
 
@@ -51,8 +63,8 @@
                              #:tb-files   (ref 'tb-files))))
 
 
-(define* (iverilog-simulate-default dut-name #:key (user-files '()) (user-test #f))
-  (let ((ref (vlog-gen-dut-ref-default dut-name #:user-files user-files)))
+(define* (iverilog-simulate-default dut-name #:key (user-files '()) (user-files-tb '()) (user-test #f))
+  (let ((ref (vlog-gen-dut-ref-default dut-name #:user-files user-files #:user-files-tb user-files-tb)))
     (iverilog-simulate-files (ref 'tb-name)
                              (or user-test (ref 'test-name))
                              #:rtl-files  (ref 'rtl-files)
@@ -64,6 +76,6 @@
   (iverilog-simulate-subblock dut-name))
 
 
-(define* (iverilog-generate-and-simulate-default dut-name #:key (user-files '()) (user-test #f))
-  (vlog-gen-default-tb dut-name)
-  (iverilog-simulate-default dut-name #:user-files user-files #:user-test user-test))
+(define* (iverilog-generate-and-simulate-default dut-name #:key (user-files '()) (user-files-tb '()) (user-test #f))
+  (vlog-gen-default-tb dut-name #:user-files-tb user-files-tb)
+  (iverilog-simulate-default dut-name #:user-files user-files #:user-files-tb user-files-tb #:user-test user-test))
