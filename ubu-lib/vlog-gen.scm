@@ -15,7 +15,7 @@
 (use-modules (tuile pr))
 
 
-(define* (vlog-gen-dut-ref dut-name subblock-info #:key (user-files '()))
+(define* (vlog-gen-dut-ref dut-name subblock-info #:key (user-files '()) (user-files-tb '()))
   (let* ((base (list (cons 'dut-name         dut-name)
                      (cons 'dut-file         (cat "rtl/" dut-name ".v"))
                      (cons 'tb-name          (cat dut-name "_tb"))
@@ -24,19 +24,22 @@
                      (cons 'test-name        (cat dut-name "_tb_test"))
                      (cons 'test-file        (cat "test/" dut-name "_tb_test.v"))
                      (cons 'waves-file       (cat "tb/" dut-name "_tb_waves.v"))
+                     (cons 'user-files-tb    user-files-tb)
                      (cons 'user-files       user-files)))
          (ref  (lambda (key) (assoc-ref base key)))
-         (sub-files (list (ref 'dut-file)
-                          (ref 'clk-file)
-                          (ref 'waves-file)
-                          (ref 'test-file)))
+         (sub-files (append (list (ref 'dut-file)
+                                  (ref 'clk-file)
+                                  (ref 'waves-file)
+                                  (ref 'test-file))
+                            (ref 'user-files-tb)))
          (comp (list (cons 'rtl-files (if subblock-info
                                           (list (ref 'dut-file))
                                           (append (get-files "rtl/*.*")
                                                   (ref 'user-files))))
-                     (cons 'tb-files  (list (ref 'clk-file)
-                                            (ref 'waves-file)
-                                            (ref 'tb-file)))
+                     (cons 'tb-files  (append (list (ref 'clk-file)
+                                                    (ref 'waves-file)
+                                                    (ref 'tb-file))
+                                              (ref 'user-files-tb)))
                      (cons 'sub-files sub-files)
                      (cons 'gen-files (list (ref 'clk-file)
                                             (ref 'waves-file)
@@ -50,8 +53,8 @@
   (vlog-gen-dut-ref dut-name #t))
 
 
-(define* (vlog-gen-dut-ref-default dut-name #:key (user-files '()))
-  (vlog-gen-dut-ref dut-name #f #:user-files user-files))
+(define* (vlog-gen-dut-ref-default dut-name #:key (user-files '()) (user-files-tb '()))
+  (vlog-gen-dut-ref dut-name #f #:user-files user-files #:user-files-tb user-files-tb))
 
 
 (define (vlog-gen-write-file file code)
@@ -150,6 +153,9 @@
 
 
 (define (vlog-gen-tb ref)
+
+  (use-dir "tb" "test")
+
   (unless (file-exists? (ref 'clk-file))
     (vlog-gen-clock-and-reset-module '() #:file (ref 'clk-file)))
 
@@ -175,5 +181,5 @@
   (vlog-gen-tb (vlog-gen-dut-ref-subblock dut-name)))
 
 
-(define* (vlog-gen-default-tb dut-name #:key (user-files '()))
-  (vlog-gen-tb (vlog-gen-dut-ref-default dut-name #:user-files user-files)))
+(define* (vlog-gen-default-tb dut-name #:key (user-files '()) (user-files-tb '()))
+  (vlog-gen-tb (vlog-gen-dut-ref-default dut-name #:user-files user-files #:user-files-tb user-files-tb)))

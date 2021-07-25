@@ -538,7 +538,9 @@
                (else
                 (string-join dir-pcs "/")))))
     (map (lambda (file)
-           (string-append dir "/" file))
+           (if (string=? "." dir)
+               file
+               (string-append dir "/" file)))
          (glob-dir dir pat))))
 
 
