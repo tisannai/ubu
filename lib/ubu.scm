@@ -88,6 +88,7 @@
             ubu-user-actions
             ubu-system-actions
             ubu-apply-dot-files
+            ubu-apply-log-settings
             ubu-cli-map
             ubu-default
             ubu-error
@@ -1500,6 +1501,12 @@
       (ubu-load local-dot-file))))
 
 
+(define (ubu-apply-log-settings)
+  (log-port-open (get ":log-file"))
+  (set! ubu-log-out (not (get ":quiet")))
+  (set! ubu-log-level (list (log-to-level (get ":log-level")))))
+
+
 ;; Run list of actions.
 (define (ubu-run lst)
 
@@ -1515,9 +1522,7 @@
           ret)))
 
   ;; Resolve some of the settings for better performance.
-  (log-port-open (get ":log-file"))
-  (set! ubu-log-out (not (get ":quiet")))
-  (set! ubu-log-level (list (log-to-level (get ":log-level"))))
+  (ubu-apply-log-settings)
 
   (if (empty? lst)
       (if (not ubu-default-action)
