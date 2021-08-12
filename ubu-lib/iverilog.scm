@@ -28,10 +28,10 @@
 
 
 (define (iverilog-get-rtl-files)
-  (get-files "rtl/*.*"))
+  (get-files "rtl/*.*v"))
 
 (define (iverilog-get-tb-files)
-  (get-files "tb/*.*"))
+  (get-files "tb/*.*v"))
 
 (define (iverilog-get-test-file test-name)
   (cat "test/" test-name ".v"))

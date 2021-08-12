@@ -34,7 +34,7 @@
                             (ref 'user-files-tb)))
          (comp (list (cons 'rtl-files (if subblock-info
                                           (list (ref 'dut-file))
-                                          (append (get-files "rtl/*.*")
+                                          (append (get-files "rtl/*.*v")
                                                   (ref 'user-files))))
                      (cons 'tb-files  (append (list (ref 'clk-file)
                                                     (ref 'waves-file)
