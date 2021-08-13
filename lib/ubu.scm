@@ -54,9 +54,11 @@
             gap
             get
             get-files
+            get-files-re
             add-files
             get-or
             glob-dir
+            glob-dir-re
             glu
             in-dir
             log
@@ -524,11 +526,8 @@
         (car res))))
 
 
-;; Collect files based on given glob pattern.
-;;
-;;    (get-files "./src/*.c")
-;;
-(define (get-files glob-pat)
+;; Separate directory and file pattern from glob pattern.
+(define (separate-dir-and-pat glob-pat)
   (let* ((pcs (string-split glob-pat #\/))
          (dir-pcs (list-head pcs (- (length pcs) 1)))
          (pat (last pcs))
@@ -537,11 +536,38 @@
                 ".")
                (else
                 (string-join dir-pcs "/")))))
-    (map (lambda (file)
-           (if (string=? "." dir)
-               file
-               (string-append dir "/" file)))
+    (cons dir pat)))
+
+
+;; Join dir and file names, unless dir is current directory.
+(define (join-dir-and-file dir file)
+  (if (string=? "." dir)
+      file
+      (string-append dir "/" file)))
+
+
+;; Collect files based on given glob pattern.
+;;
+;;    (get-files "./src/*.c")
+;;
+(define (get-files glob-pat)
+  (let* ((dir-pat (separate-dir-and-pat glob-pat))
+         (dir (car dir-pat))
+         (pat (cdr dir-pat)))
+    (map (lambda (file) (join-dir-and-file dir file))
          (glob-dir dir pat))))
+
+
+;; Collect files based on given regexp (glob) pattern.
+;;
+;;    (get-files "./src/.*[.]c")
+;;
+(define (get-files-re glob-pat)
+  (let* ((dir-pat (separate-dir-and-pat glob-pat))
+         (dir (car dir-pat))
+         (pat (cdr dir-pat)))
+    (map (lambda (file) (join-dir-and-file dir file))
+         (glob-dir-re dir pat))))
 
 
 ;; Add files to collection, unless the file is already in.
@@ -963,13 +989,14 @@
 
 ;; Glob directory.
 ;;
-;;     (glob-dir "../foo" "*.c")
+;;     (glob-dir "../foo" "*.{c,cc}")
 ;;
 (define (glob-dir dir pat)
 
   ;; Glob pattern to regexp.
   (define (glob->regexp pat)
-    (let ((len (string-length pat)))
+    (let ((len (string-length pat))
+          (in-selection 0))
       (string-concatenate
        (append
         (list "^")
@@ -981,6 +1008,15 @@
                   ((#\?) (cons "[^.]" (loop (1+ i))))
                   ((#\[) (cons "[" (loop (1+ i))))
                   ((#\]) (cons "]" (loop (1+ i))))
+                  ((#\{) (begin
+                           (set! in-selection (1+ in-selection))
+                           (cons "(" (loop (1+ i)))))
+                  ((#\}) (begin
+                           (set! in-selection (1- in-selection))
+                           (cons ")" (loop (1+ i)))))
+                  ((#\,) (if (> in-selection 0)
+                             (cons "|" (loop (1+ i)))
+                             (cons "," (loop (1+ i)))))
                   ((#\\)
                    (cons (list->string (list char (string-ref pat (1+ i))))
                          (loop (+ i 2))))
@@ -990,7 +1026,15 @@
               '()))
         (list "$")))))
 
-  (let ((rx (make-regexp (glob->regexp pat))))
+  (glob-dir-re dir (glob->regexp pat)))
+
+
+;; Glob directory with regexp.
+;;
+;;     (glob-dir-re "../foo" ".*[.](c|cc)")
+;;
+(define (glob-dir-re dir pat)
+  (let ((rx (make-regexp pat)))
     (filter (lambda (x) (regexp-exec rx x)) (list-dir dir))))
 
 
