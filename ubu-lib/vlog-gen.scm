@@ -17,7 +17,10 @@
 
 (define* (vlog-gen-dut-ref dut-name subblock-info #:key (user-files '()) (user-files-tb '()))
   (let* ((base (list (cons 'dut-name         dut-name)
-                     (cons 'dut-file         (cat "rtl/" dut-name ".v"))
+                     (cons 'dut-file         (let ((dut-file-try (cat "rtl/" dut-name ".v")))
+                                               (if (file-exists? dut-file-try)
+                                                   dut-file-try
+                                                   (cat "rtl/" dut-name ".sv"))))
                      (cons 'tb-name          (cat dut-name "_tb"))
                      (cons 'tb-file          (cat "tb/" dut-name "_tb.v"))
                      (cons 'clk-file         "tb/clk_rst.v")
@@ -171,7 +174,7 @@
              ;; Select default or specific hier (vehi).
              (let ((vehi (cat "tb/" (ref 'tb-name) ".vehi.scm")))
                (if (file-exists? vehi)
-                   (cat "-i " vehi)
+                   (cat "-s -i " vehi)
                    "-a tb"))
              "-b -o"
              (ref 'tb-file)))))
