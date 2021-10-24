@@ -7,6 +7,7 @@
    vlog-gen-wave-dump-module
    vlog-gen-subblock-tb
    vlog-gen-default-tb
+   vlog-gen-get-file
    ))
 
 
@@ -15,12 +16,16 @@
 (use-modules (tuile pr))
 
 
+(define (vlog-gen-get-file dir basename)
+  (let ((dut-file-try (cat dir "/" basename ".v")))
+    (if (file-exists? dut-file-try)
+        dut-file-try
+        (cat dir "/" basename ".sv"))))
+
+
 (define* (vlog-gen-dut-ref dut-name subblock-info #:key (user-files '()) (user-files-tb '()))
   (let* ((base (list (cons 'dut-name         dut-name)
-                     (cons 'dut-file         (let ((dut-file-try (cat "rtl/" dut-name ".v")))
-                                               (if (file-exists? dut-file-try)
-                                                   dut-file-try
-                                                   (cat "rtl/" dut-name ".sv"))))
+                     (cons 'dut-file         (vlog-gen-get-file "rtl" dut-name))
                      (cons 'tb-name          (cat dut-name "_tb"))
                      (cons 'tb-file          (cat "tb/" dut-name "_tb.v"))
                      (cons 'clk-file         "tb/clk_rst.v")

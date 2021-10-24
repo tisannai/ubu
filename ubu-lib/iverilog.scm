@@ -34,7 +34,8 @@
   (get-files "tb/*.*v"))
 
 (define (iverilog-get-test-file test-name)
-  (cat "test/" test-name ".v"))
+;;  (cat "test/" test-name ".v")
+  (vlog-gen-get-file "test" test-name))
 
 
 (define* (iverilog-simulate-files tb-name
