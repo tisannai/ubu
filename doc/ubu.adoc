@@ -133,8 +133,8 @@ and Ubu User Variables.
 
 Actions are Guile functions, which are registered to Ubu. They can be
 listed and identified. But since they are regular Guile functions,
-they can called the same way as any Guile function. Actions are
-thunks, i.e. they have no arguments. This also means that they can be
+they can also be called the same way as any Guile function. Actions
+are thunks, i.e. they have no arguments. This means that they can be
 parametrized only through Ubu Variables.
 
 Helpers are regular Guile functions. They typically have arguments, as
@@ -144,7 +144,7 @@ Helper body.
 
 The concepts are easiest to describe using a concrete example. Let's
 assume that we want to link C-object files in order to create an
-executable. We are skipping the complilation for now. The example
+executable. We are skipping the complilation part for now. The example
 lines are from `example/hello/ubu`.
 
 First we define the location of source and object files.
@@ -794,8 +794,8 @@ Syntax: `(ubu-actions)`
 
 ==== ubu-apply-dot-files
 
-Load dot-files at call location. First load "$HOME/.ubu" is, if
-exists. Then load ".ubu" from the current directory, if exists.
+Load dot-files at call location. First load "$HOME/.ubu", if it
+exists. Then load ".ubu" from the current directory, if it exists.
 
 Syntax: `(ubu-apply-dot-files)`
 
