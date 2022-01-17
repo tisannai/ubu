@@ -8,6 +8,7 @@
    iverilog-simulate-default
    iverilog-generate-and-simulate-subblock
    iverilog-generate-and-simulate-default
+   iverilog-view-waves
    ))
 
 (use-modules (ubu))
@@ -80,3 +81,8 @@
 (define* (iverilog-generate-and-simulate-default dut-name #:key (user-files '()) (user-files-tb '()) (user-test #f))
   (vlog-gen-default-tb dut-name #:user-files-tb user-files-tb)
   (iverilog-simulate-default dut-name #:user-files user-files #:user-files-tb user-files-tb #:user-test user-test))
+
+
+(define (iverilog-view-waves dut-name)
+  (let ((ref (vlog-gen-dut-ref-subblock dut-name)))
+    (sh (ss "gtkwave sim/" (ref 'tb-name) ".vcd &"))))
