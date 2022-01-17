@@ -183,7 +183,7 @@
              (let ((vehi (cat "tb/" (ref 'tb-name) ".vehi.scm")))
                (if (file-exists? vehi)
                    (cat "-s -i " vehi)
-                   "-a tb"))
+                   "-s -a tb"))
              "-b -o"
              (ref 'tb-file)))))
 
