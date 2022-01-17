@@ -85,4 +85,4 @@
 
 (define (iverilog-view-waves dut-name)
   (let ((ref (vlog-gen-dut-ref-subblock dut-name)))
-    (sh (ss "gtkwave sim/" (ref 'tb-name) ".vcd &"))))
+    (system (ss "gtkwave sim/" (ref 'tb-name) ".vcd &"))))
