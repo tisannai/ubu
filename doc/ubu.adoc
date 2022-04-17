@@ -448,6 +448,14 @@ only the file body, i.e. no directory nor extension.
 Syntax: `(file-base <file-or-filelist> ...)`
 
 
+==== file-chmod-to-executable
+
+`file-chmod-to-executable` adds execution permissions to user for the
+file.
+
+Syntax: `(file-chmod-to-executable <filename>)`
+
+
 ==== file-dir
 
 `file-dir` returns the directory name of file (or files).
@@ -502,6 +510,14 @@ If file `b` does not exist, `file-update?` returns true, and `cond-fn`
 is not executed at all.
 
 Syntax: `(file-update? <cond-fn> <a> <b>)`
+
+
+==== file-write-lines
+
+`file-write-lines` writes the provided lines to the file. Lines are a
+list of line content without the terminating newlines.
+
+Syntax: `(file-write-lines <filename> <line> ...)`
 
 
 ==== for

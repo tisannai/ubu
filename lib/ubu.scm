@@ -44,12 +44,14 @@
             env
             eva
             file-base
+            file-chmod-to-executable
             file-dir
             file-ext
             file-mapping-type
             file-name
             file-or-directory-is-newer?
             file-update?
+            file-write-lines
             for
             gap
             get
@@ -645,7 +647,16 @@
                (basename filename))
              (flat-args-1 rest)))
 
+(define (file-write-lines filename . lines)
+  (with-output-to-file filename
+    (lambda ()
+      (for-each (lambda (line)
+                  (display line)
+                  (newline))
+                lines))))
 
+(define (file-chmod-to-executable filename)
+  (chmod filename (+ (stat:perms (stat filename)) #o100)))
 
 ;; ------------------------------------------------------------
 ;; Update conditions:
