@@ -4,7 +4,7 @@
             ))
 
 (use-modules (ubu))
-
+(use-modules (system base compile))
 
 ;; Install guile program as single binary library.
 ;;
@@ -19,10 +19,12 @@
                             "/bin/"
                             filename
                             ".go"))
-         (bin-file-path (cat (getenv "HOME") "/bin/" filename))
-         (file-write-lines bin-file-path
-                           "#!/usr/bin/env guile"
-                           "-s"
-                           "!#"
-                           (cat "(load-compiled \"" go-file-path "\")"))
-         (file-chmod-to-executable bin-file-path))))
+         (bin-file-path (cat (getenv "HOME") "/bin/" filename)))
+    (compile-file program #:output-file go-file-path)
+    (delete-file bin-file-path)
+    (file-write-lines bin-file-path
+                      "#!/usr/bin/env guile"
+                      "-s"
+                      "!#"
+                      (cat "(load-compiled \"" go-file-path "\")"))
+    (file-chmod-to-executable bin-file-path)))
