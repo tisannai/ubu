@@ -13,18 +13,25 @@
 ;;
 ;; Example: (guile-install-bin "bin/bas")
 ;;
-(define (guile-install-bin program)
+(define (guile-install-bin program . libs)
   (let* ((filename (file-name program))
-         (go-file-path (cat (car (string-split (getenv "GUILE_LOAD_PATH") #\:))
-                            "/bin/"
-                            filename
-                            ".go"))
+         (go-path (cat (car (string-split (getenv "GUILE_LOAD_PATH") #\:))
+                       "/install-bin/"
+                       filename))
+         (go-bin-path (cat go-path "/bin/" filename ".go"))
          (bin-file-path (cat (getenv "HOME") "/bin/" filename)))
-    (compile-file program #:output-file go-file-path)
+    (compile-file program #:output-file go-bin-path)
+    (when (pair? libs)
+      (for-each (lambda (lib)
+                  (compile-file lib #:output-file (cat go-path "/" lib ".go")))
+                libs))
     (delete-file bin-file-path)
-    (file-write-lines bin-file-path
-                      "#!/usr/bin/env guile"
-                      "-s"
-                      "!#"
-                      (cat "(load-compiled \"" go-file-path "\")"))
+    (apply file-write-lines
+           (append (list bin-file-path
+                         "#!/usr/bin/env guile"
+                         "-s"
+                         "!#")
+                   (map (lambda (file)
+                          (cat "(load-compiled \"" go-path "/" file ".go\")"))
+                        (append libs (list program)))))
     (file-chmod-to-executable bin-file-path)))
