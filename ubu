@@ -5,6 +5,8 @@
 
 ;; Load ubu module.
 (use-modules (ubu))
+(use-modules (ubu-lib adoc))
+
 
 ;; User help.
 (action-help
@@ -24,23 +26,15 @@
 
 ;; Setup install variables.
 (set "ubu-path" (car (regexp-split ":" (env "GUILE_LOAD_PATH"))))
-(set "man-path" (cat (env "HOME") "/usr/man"))
-(set "doc-src" "doc/ubu.adoc")
-(set "doc-dst" "doc/UBU.3")
+(set "adoc-prog-name" "ubu")
 
 ;; By default install ubu.
 
 (action install
  (sh "cp lib/ubu.scm" (get "ubu-path"))
- (build-doc)
- (sh "cp " (get "doc-dst") (cat (get "man-path") "/man3")))
+ (adoc-build-man)
+ (adoc-install-man))
 (ubu-default "install")
-
-;; Build man pages.
-(action build-doc
-        (ubu-for-updates (get "doc-src") (get "doc-dst")
-                         (lambda (src dst)
-                           (sh "a2x --doctype manpage --format manpage" src "-D doc"))))
 
 (action test
         (with-output
