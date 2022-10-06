@@ -98,7 +98,7 @@
             ubu-error
             ubu-exit
             ubu-fatal
-            ubu-file-cache
+            ubu-file-proxy
             ubu-hello
             ubu-info
             ubu-load
@@ -205,18 +205,21 @@
 ;;
 ;;     (define-values (python_package_dir
 ;;                     python_include)
-;;       (ubu-file-cache ".ubu-cocotb-config"
+;;       (ubu-file-proxy ".ubu-cocotb-config"
 ;;                       (list
 ;;                        (lambda () (cmd "cocotb-config --prefix"))
 ;;                        (lambda () (cmd "python3-config --includes")))))
 ;;
-(define (ubu-file-cache filename thunks)
+(define (ubu-file-proxy filename thunks)
+
   (if (file-exists? filename)
+
       (apply values (drop-right
                      (string-split
                       (with-input-from-file filename (lambda () (get-string-all (current-input-port))))
                       #\newline)
                      1))
+
       (let ((vals (map (lambda (thunk)
                          (thunk))
                        thunks)))
@@ -1624,7 +1627,7 @@
 
 (action-build-in ubu-user-actions
                  (for (act (lookup-keys ubu-act))
-                   (when (not (string-contains act "ubu-"))
+                   (when (not (string-prefix? "ubu-" act))
                      (if (and ubu-default-action
                               (string=? ubu-default-action
                                         act))
@@ -1634,7 +1637,7 @@
 
 (action-build-in ubu-system-actions
                  (for (act (lookup-keys ubu-act))
-                   (when (string-contains act "ubu-")
+                   (when (string-prefix? "ubu-" act)
                      (prnl "    " act))))
 
 

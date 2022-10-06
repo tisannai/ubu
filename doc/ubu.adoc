@@ -853,14 +853,14 @@ failure status.
 Syntax: `(ubu-fatal <msg> ...)`
 
 
-==== ubu-file-cache
+==== ubu-file-proxy
 
-`ubu-file-cache` reads values from file if it exists. Otherwise it
-will execute the thunks and generate missing the file. Eventually
-`ubu-file-cache` will return the values as `values`, i.e. as Scheme
+`ubu-file-proxy` reads values from file if it exists. Otherwise it
+will execute the thunks and generate the missing file. In any case,
+`ubu-file-proxy` will return the values as `values`, i.e. as Scheme
 multiple return values.
 
-Syntax: `(ubu-file-cache <filename> <thunk-list>)`
+Syntax: `(ubu-file-proxy <filename> <thunk-list>)`
 
 
 ==== ubu-hello
