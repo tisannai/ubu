@@ -5,6 +5,7 @@
 
 ;; Load ubu module.
 (use-modules (ubu))
+(use-modules (ubu-lib path))
 (use-modules (ubu-lib adoc))
 
 
@@ -25,13 +26,12 @@
  "")
 
 ;; Setup install variables.
-(set "ubu-path" (car (regexp-split ":" (env "GUILE_LOAD_PATH"))))
 (set "adoc-prog-name" "ubu")
 
 ;; By default install ubu.
 
 (action install
- (sh "cp lib/ubu.scm" (get "ubu-path"))
+ (sh "cp lib/ubu.scm" (get "user-install-path"))
  (adoc-build-man)
  (adoc-install-man))
 (ubu-default "install")
@@ -42,7 +42,7 @@
                  (sh "test-ubu"))))
 
 (action install-ubu-lib
-        (let* ((ubu-lib-dir (cat (get "ubu-path") "/ubu-lib")))
+        (let* ((ubu-lib-dir (cat (get "user-install-path") "/ubu-lib")))
           (sh "cp -r ubu-lib/*.scm" ubu-lib-dir)
           (sh "cp ubu-lib/inotify/inotify.scm" ubu-lib-dir)))
 
