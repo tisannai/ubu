@@ -2,12 +2,15 @@
 !#
 
 (add-to-load-path "lib")
+(add-to-load-path "ubu-lib")
 
 ;; Load ubu module.
 (use-modules (ubu))
 (use-modules (ubu-lib path))
 (use-modules (ubu-lib adoc))
 
+
+(path-refresh)
 
 ;; User help.
 (action-help

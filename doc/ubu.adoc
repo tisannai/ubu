@@ -520,6 +520,14 @@ list of line content without the terminating newlines.
 Syntax: `(file-write-lines <filename> <line> ...)`
 
 
+==== fix
+
+`fix` ensures that the string has one space before every word and no
+other spaces.
+
+Syntax: `(fix <str>)`
+
+
 ==== for
 
 `for` iterates over a list of items using given procedure. List item
@@ -614,6 +622,14 @@ If multiple files are process, a list of results is returned. If only
 one file is process, the result is also a single file name.
 
 Syntax: `(map-files <file-or-filelist> ['dir <new-dir>] ['ext <new-ext>])`
+
+
+==== nip
+
+`nip` passed string forward as is, unless it is all whitespace and
+converts it to an empty string.
+
+Syntax: `(nip <str>)`
 
 
 ==== pair

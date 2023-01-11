@@ -69,6 +69,8 @@
             pair
             join
             pcs
+            nip
+            fix
             ref
             set
             sh
@@ -303,7 +305,7 @@
       empty))
 
 
-;; One level args flattening.
+;; One level of args flattening and empty removal.
 (define (flat-args-1 . args)
   (let once ((tail (car args)))
     (if (pair? tail)
@@ -1407,19 +1409,66 @@
 
 
 ;; Add option to each argument.
+;;
+;; If "opt" is options switch string (e.g. "-l") it will be added in
+;; front of "rest" arguments.
+;;
+;; If "opt" is false or empty string, the arguments are separated with
+;; single space.
+;;
+;; If there are no "rest" arguments, an empty string is returned.
+;;
 (define (cli opt . rest)
-  (let ((args (flat-args-1 rest)))
-    (string-join
-     (map (lambda (i)
-            (string-append opt " " i))
-          args)
-     " ")))
+  (if (pair? rest)
+      (let ((args (flat-args-1 rest)))
+        (string-join
+         (map (lambda (i)
+                (if (and opt (not (string-null? opt)))
+                    (string-append " " opt " " i)
+                    (string-append " " i)))
+              args)
+         ""))
+      ""))
 
 
 ;; Split string into pieces (separated by space).
 (define (pcs str)
   (regexp-split "[ ]+" str))
 
+
+;; Reduce whitespace strings to empty string.
+(define (nip str)
+  (if (string-any char-set:graphic str)
+      str
+      ""))
+
+
+;; Fix "str" for command line.
+;;
+;; Ensure exactly one space before every word and no tailing spaces.
+;;
+(define (fix str)
+  (let loop ((chars (string->list str))
+             (state 'space)
+             (ret '()))
+    (if (pair? chars)
+        (case state
+          ((word) (if (char-whitespace? (car chars))
+                      (loop (cdr chars)
+                            'space
+                            ret)
+                      (loop (cdr chars)
+                            state
+                            (cons (car chars) ret))))
+          ((space) (if (char-whitespace? (car chars))
+                       (loop (cdr chars)
+                             state
+                             ret)
+                       (loop (cdr chars)
+                             'word
+                             (append (list (car chars) #\ )
+                                     ret)))))
+        (list->string (reverse ret)))))
 
 
 ;; ------------------------------------------------------------
