@@ -1421,13 +1421,14 @@
 (define (cli opt . rest)
   (if (pair? rest)
       (let ((args (flat-args-1 rest)))
-        (string-join
-         (map (lambda (i)
-                (if (and opt (not (string-null? opt)))
-                    (string-append " " opt " " i)
-                    (string-append " " i)))
-              args)
-         ""))
+        (fix
+         (string-join
+          (map (lambda (i)
+                 (if (and opt (not (string-null? opt)))
+                     (string-append " " opt " " i)
+                     (string-append " " i)))
+               args)
+          "")))
       ""))
 
 
@@ -1448,7 +1449,7 @@
 ;; Ensure exactly one space before every word and no tailing spaces.
 ;;
 (define (fix str)
-  (let loop ((chars (string->list str))
+  (let loop ((chars (string->list (nip str)))
              (state 'space)
              (ret '()))
     (if (pair? chars)
