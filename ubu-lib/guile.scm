@@ -25,7 +25,8 @@
       (for-each (lambda (lib)
                   (compile-file lib #:output-file (cat go-path "/" lib ".go")))
                 libs))
-    (delete-file bin-file-path)
+    (when (file-exists? bin-file-path)
+      (delete-file bin-file-path))
     (apply file-write-lines
            (append (list bin-file-path
                          "#!/usr/bin/env guile"
