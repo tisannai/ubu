@@ -3,7 +3,7 @@
             guile-install-bin
             ))
 
-(use-modules (ubu))
+(use-modules (ubu core))
 (use-modules (system base compile))
 
 ;; Install guile program as single binary library.

@@ -8,7 +8,7 @@
             gcc-link-files
             ))
 
-(use-modules (ubu))
+(use-modules (ubu core))
 
 
 ;; Compile c-files to o-files (object-files).

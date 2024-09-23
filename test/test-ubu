@@ -1,8 +1,8 @@
 #!/usr/bin/guile -s
 !#
 
-(add-to-load-path "../lib")
-(use-modules (ubu))
+(add-to-load-path "../")
+(use-modules (ubu core))
 (use-modules (srfi srfi-64))
 
 

@@ -4,7 +4,7 @@
             adoc-install-man
             ))
 
-(use-modules (ubu))
+(use-modules (ubu core))
 (use-modules (system base compile))
 
 ;; Install adoc based documentation (man pages, etc.).

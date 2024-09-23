@@ -3,7 +3,7 @@
             map-source-to-target
             ))
 
-(use-modules (ubu))
+(use-modules (ubu core))
 
 
 ;; Convert set of files with source extension to set of files with target

@@ -11,7 +11,7 @@
    ))
 
 
-(use-modules (ubu))
+(use-modules (ubu core))
 (use-modules (tuile utils))
 (use-modules (tuile pr))
 

@@ -6,7 +6,7 @@
    get-user-install-path
    ))
 
-(use-modules (ubu))
+(use-modules (ubu core))
 
 ;; User must call this function in order to make the variable valid and visible.
 (define (path-refresh)

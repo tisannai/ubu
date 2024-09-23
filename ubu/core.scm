@@ -11,7 +11,7 @@
 ;; - flag for del call optimization
 
 
-(define-module (ubu)
+(define-module (ubu core)
 
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-8)

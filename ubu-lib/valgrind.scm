@@ -3,7 +3,7 @@
             valgrind-analyze
             ))
 
-(use-modules (ubu))
+(use-modules (ubu core))
 
 ;; Set defaults for Valgrind Variables
 (set "valgrind-opts"     "--error-limit=no --leak-check=full")
