@@ -21,6 +21,7 @@
 
   #:use-module (ice-9 rdelim)
   #:use-module (ice-9 popen)
+  #:use-module (ice-9 match)
   #:use-module (ice-9 regex)
   #:use-module ((ice-9 ftw) #:select (scandir))
   #:use-module (ice-9 threads)
@@ -141,7 +142,6 @@
   #:re-export (receive)
 
   )
-
 
 
 (define ubu-version-num '(0 2))
@@ -412,6 +412,9 @@
 ;; Execute shell command and return responses as list.
 ;;
 ;; Responses: status-code stdout stderr
+
+;; This old version hangs if the shell command only outputs stderr, but no stdout.
+#;
 (define (capture-shell-command cmd)
   (let* ((stdout #f)
          (stderr #f)
@@ -427,6 +430,48 @@
       (close-port (cdr err-pipe))
       (set! stderr (get-string-all (car err-pipe))))
     (list (status:exit-val status) stdout stderr)))
+
+(define (capture-shell-command command)
+  (let* ((stdout-pipe (pipe))
+         (stderr-pipe (pipe))
+         (pid (primitive-fork)))
+
+    (if (= pid 0)
+        (begin
+          ;; child
+          ;; redirect stdout
+          (dup2 (port->fdes (cdr stdout-pipe)) 1)
+          ;; redirect stderr
+          (dup2 (port->fdes (cdr stderr-pipe)) 2)
+          (close-port (car stdout-pipe))
+          (close-port (car stderr-pipe))
+          (close-port (cdr stdout-pipe))
+          (close-port (cdr stderr-pipe))
+          (execl "/bin/sh" "sh" "-c" command))
+        (begin
+          ;; parent
+          (close-port (cdr stdout-pipe))
+          (close-port (cdr stderr-pipe))
+          (let loop ((stdout "")
+                     (stderr ""))
+            (let ((fds (select (list (car stdout-pipe) (car stderr-pipe)) '() '() 1.0)))
+              (match fds
+                ((readable _ _)
+                 (let ((new-out (if (member (car stdout-pipe) readable)
+                                    (get-string-all (car stdout-pipe))
+                                    ""))
+                       (new-err (if (member (car stderr-pipe) readable)
+                                    (get-string-all (car stderr-pipe))
+                                    "")))
+                   (if (and (string-null? new-out) (string-null? new-err))
+                       (let ((status (waitpid pid)))
+                         (close-port (car stdout-pipe))
+                         (close-port (car stderr-pipe))
+                         (list (cdr status) stdout stderr))
+                       (loop (string-append stdout new-out)
+                             (string-append stderr new-err)))))
+                (_ ;; timeout or nothing
+                 (loop stdout stderr)))))))))
 
 
 ;; Execute shell command and display output.
